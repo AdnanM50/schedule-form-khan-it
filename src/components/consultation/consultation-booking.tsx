@@ -7,6 +7,7 @@ import { BusinessInfoStep } from "./_step-components/business-info-step"
 import { ServiceNeedsStep } from "./_step-components/service-needs-step"
 import { ScheduleMeetingStep } from "./_step-components/schedule-meeting-step"
 import { ThankYouModal } from "./thank-you-modal"
+import Image from "next/image"
 
 export interface FormData {
   // Personal Info
@@ -82,8 +83,10 @@ export default function ConsultationBooking() {
       <div className="max-w-4xl mx-auto">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <img
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-GzQRMj2wxz5VDXkODhGEhObXqRvjZP.png"
+          <Image
+            width={150}
+            height={150}
+            src="/logo.png"
             alt="MD Faruk Khan Logo"
             className="h-12 w-auto"
           />
