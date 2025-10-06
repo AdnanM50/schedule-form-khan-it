@@ -23,7 +23,7 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
   }
 
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-lg shadow-sm border border-border p-6 sm:p-8">
+    <div className="max-w-[768px] mx-auto bg-white rounded-lg shadow-sm border border-border p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Company Name */}
         <div className="space-y-2">
@@ -42,7 +42,7 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
         </div>
 
         {/* Business Type/Industry */}
-        <div className="space-y-2">
+        <div className="space-y-2 w-full">
           <Label htmlFor="businessType" className="text-sm font-medium">
             Business Type/Industry
           </Label>
@@ -51,7 +51,7 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
             onValueChange={(value) => updateFormData({ businessType: value })}
             required
           >
-            <SelectTrigger id="businessType">
+            <SelectTrigger id="businessType" className="w-full">
               <SelectValue placeholder="Select your industry" />
             </SelectTrigger>
             <SelectContent>
@@ -83,12 +83,12 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
         </div>
 
         {/* Have you done SEO before? */}
-        <div className="space-y-2">
+        <div className="space-y-2 w-full">
           <Label htmlFor="hasDoneSEO" className="text-sm font-medium">
             Have you done SEO before?
           </Label>
           <Select value={formData.hasDoneSEO} onValueChange={(value) => updateFormData({ hasDoneSEO: value })} required>
-            <SelectTrigger id="hasDoneSEO">
+            <SelectTrigger id="hasDoneSEO" className="w-full">
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
             <SelectContent>
@@ -100,19 +100,19 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4">
+        <div className="flex sm:flex-row flex-col gap-4 justify-between">
           <Button
             type="button"
             variant="outline"
             onClick={onBack}
-            className="flex-1 h-12 text-base font-medium bg-transparent"
+            className="sm:w-[15%] w-[50%] h-9 sm:h-12 text-base font-medium bg-transparent"
           >
             <ArrowLeft className="mr-2 h-5 w-5" />
             Back
           </Button>
           <Button
             type="submit"
-            className="flex-1 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white h-12 text-base font-medium"
+            className="sm:w-[35%]  w-[50%] bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white h-9 sm:h-12 text-base font-medium"
           >
             Continue to Next Step
             <ArrowRight className="ml-2 h-5 w-5" />

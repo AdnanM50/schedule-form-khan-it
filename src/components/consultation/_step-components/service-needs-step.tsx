@@ -19,11 +19,11 @@ interface ServiceNeedsStepProps {
 }
 
 const goals = [
-  { id: "foot-traffic", label: "Increase local foot traffic" },
+  { id: "foot-traffic", label: "Increase local foot traffic/calls" },
   { id: "online-sales", label: "Boost online sales/revenue" },
   { id: "brand-awareness", label: "Improve brand awareness" },
-  { id: "quality-leads", label: "Generate quality Leads/calls" },
-  { id: "google-ranking", label: "Rank higher on Google" },
+  { id: "outrank-competitors", label: "Outrank specific competitors" },
+  { id: "recover-rankings", label: "Recover lost rankings" },
   { id: "other-goal", label: "Other" },
 ]
 
@@ -36,32 +36,32 @@ const serviceTeams = [
   {
     id: "ecommerce-seo",
     label: "E-Commerce SEO",
-    description: "Specialized in Shopify, WooCommerce & other e-stores",
+    description: "Optimized for Shopify, WooCommerce & online stores",
   },
   {
     id: "brand-seo",
     label: "Brand SEO & PR",
-    description: "Scale visibility for brands/companies",
+    description: "Build visibility for a person or company brand",
   },
   {
     id: "digital-marketing",
     label: "Digital Marketing Consultancy",
-    description: "Full-funnel marketing strategy & execution",
+    description: "Strategy sessions to guide your growth",
   },
   {
-    id: "tech-recovery",
-    label: "Tech Stack/Penalty Recovery",
-    description: "Fix website issues affecting search",
+    id: "rank-recovery",
+    label: "Rank Drop/Penalty Recovery",
+    description: "Fix sudden Google ranking issues",
   },
   {
     id: "seo-workshop",
     label: "SEO Workshop",
-    description: "Training day for your content/marketing team",
+    description: "Training day for your company/institution",
   },
   {
     id: "other-service",
     label: "Other",
-    description: "Custom requirement",
+    description: "Custom requirements",
   },
 ]
 
@@ -84,12 +84,11 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
   }
 
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-lg shadow-sm border border-border p-6 sm:p-8">
+    <div className="max-w-[768px] mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Goals Section */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-foreground">What are your main goals?</h3>
-          <p className="text-sm text-muted-foreground">(Choose all that apply)</p>
+          <h3 className="text-lg font-semibold text-gray-800">What's your primary goal?</h3>
           <div className="space-y-3">
             {goals.map((goal) => (
               <div key={goal.id} className="flex items-center space-x-3">
@@ -97,8 +96,9 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
                   id={goal.id}
                   checked={formData.goals.includes(goal.id)}
                   onCheckedChange={() => handleGoalToggle(goal.id)}
+                  className="!w-4 !h-4 !border-2 !border-orange-500 !bg-white data-[state=checked]:!bg-orange-500 data-[state=checked]:!border-orange-500 data-[state=checked]:!text-white"
                 />
-                <Label htmlFor={goal.id} className="text-sm font-normal cursor-pointer">
+                <Label htmlFor={goal.id} className="text-sm font-normal cursor-pointer text-gray-700">
                   {goal.label}
                 </Label>
               </div>
@@ -108,7 +108,7 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
 
         {/* Service Team Section */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-foreground">Choose the Service Team/s looking for</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Choose the Service You're Looking For</h3>
           <RadioGroup
             value={formData.serviceTeam}
             onValueChange={(value) => updateFormData({ serviceTeam: value })}
@@ -117,14 +117,22 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
             {serviceTeams.map((service) => (
               <div
                 key={service.id}
-                className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                className={`flex items-start space-x-3 p-4 rounded-lg border-2 transition-colors cursor-pointer ${
+                  formData.serviceTeam === service.id
+                    ? 'border-orange-500 bg-orange-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
               >
-                <RadioGroupItem value={service.id} id={service.id} className="mt-0.5" />
+                <RadioGroupItem 
+                  value={service.id} 
+                  id={service.id} 
+                  className="!mt-0.5 !w-4 !h-4 !border-2 !border-orange-500 !bg-white data-[state=checked]:!bg-orange-500 data-[state=checked]:!border-orange-500 data-[state=checked]:!text-white" 
+                />
                 <div className="flex-1">
-                  <Label htmlFor={service.id} className="text-sm font-medium cursor-pointer block">
+                  <Label htmlFor={service.id} className="text-sm font-semibold cursor-pointer block text-gray-800">
                     {service.label}
                   </Label>
-                  <p className="text-xs text-muted-foreground mt-0.5">{service.description}</p>
+                  <p className="text-xs text-gray-600 mt-1">{service.description}</p>
                 </div>
               </div>
             ))}
@@ -132,19 +140,19 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4">
+        <div className="flex sm:flex-row flex-col gap-4 justify-between">
           <Button
             type="button"
             variant="outline"
             onClick={onBack}
-            className="flex-1 h-12 text-base font-medium bg-transparent"
+            className="sm:w-[15%] w-[50%] h-9 sm:h-12 text-base font-medium bg-transparent"
           >
             <ArrowLeft className="mr-2 h-5 w-5" />
             Back
           </Button>
           <Button
             type="submit"
-            className="flex-1 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white h-12 text-base font-medium"
+            className="sm:w-[35%]  w-[50%] bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white h-9 sm:h-12 text-base font-medium"
           >
             Continue to Next Step
             <ArrowRight className="ml-2 h-5 w-5" />

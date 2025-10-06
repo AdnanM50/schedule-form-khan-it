@@ -230,3 +230,180 @@ html.theme-changing, html.theme-changing body {
   box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 12px 40px -8px rgba(62, 77, 255, 0.35), 0 0 60px -20px rgba(120, 95, 255, 0.45);
 }
 
+/* Custom Phone Input Styles - Exact Match */
+.phone-input-custom {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  height: 36px;
+  padding: 0;
+  transition: border-color 0.2s ease;
+  position: relative;
+}
+
+.phone-input-custom:hover {
+  border-color: #9ca3af;
+}
+
+.phone-input-custom:focus-within {
+  border-color: #d1d5db;
+  box-shadow: none;
+  outline: none;
+}
+
+/* Country selector container */
+.phone-input-custom .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 4px;
+  border-right: 1px solid #d1d5db;
+  min-width: 60px;
+}
+
+/* Country select button */
+.phone-input-custom .PhoneInputCountrySelect {
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  height: 100%;
+  outline: none;
+  box-shadow: none;
+}
+
+/* Flag icon */
+.phone-input-custom .PhoneInputCountryIcon {
+  width: 18px;
+  height: 13px;
+  border-radius: 2px;
+  display: block;
+}
+
+/* Dropdown arrow - more prominent */
+.phone-input-custom .PhoneInputCountrySelectArrow {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #374151;
+  margin-left: 4px;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Add a clear down arrow icon */
+.phone-input-custom .PhoneInputCountrySelect::after {
+  content: '▼';
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-15deg);
+  color: #374151;
+  font-size: 12px;
+  pointer-events: none;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 10;
+}
+
+/* Alternative arrow using border method */
+.phone-input-custom .PhoneInputCountrySelect::before {
+  content: '';
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-15deg);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #374151;
+  pointer-events: none;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 10;
+}
+
+/* Phone number input */
+.phone-input-custom .PhoneInputInput {
+  border: none;
+  background: transparent;
+  padding: 8px 12px;
+  flex: 1;
+  height: 100%;
+  font-size: 14px;
+  color: #374151;
+  outline: none;
+  box-shadow: none;
+}
+
+.phone-input-custom .PhoneInputInput::placeholder {
+  color: #9ca3af;
+}
+
+/* Remove default focus styles */
+.phone-input-custom .PhoneInputCountrySelect:focus,
+.phone-input-custom .PhoneInputInput:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Dropdown styling */
+.PhoneInputCountrySelect-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.PhoneInputCountrySelect-dropdown .PhoneInputCountrySelect-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  gap: 8px;
+}
+
+.PhoneInputCountrySelect-dropdown .PhoneInputCountrySelect-option:hover {
+  background-color: #f3f4f6;
+}
+
+.PhoneInputCountrySelect-dropdown .PhoneInputCountrySelect-option--selected {
+  background-color: #e5e7eb;
+}
+
+.PhoneInputCountrySelect-dropdown .PhoneInputCountrySelect-option-flag {
+  width: 18px;
+  height: 13px;
+  border-radius: 2px;
+}
+
+.PhoneInputCountrySelect-dropdown .PhoneInputCountrySelect-option-label {
+  font-size: 14px;
+  color: #374151;
+  flex: 1;
+}
+
+.PhoneInputCountrySelect-dropdown .PhoneInputCountrySelect-option-code {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+

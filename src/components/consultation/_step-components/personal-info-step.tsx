@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { FormData } from "../consultation-booking"
 import { ArrowRight } from "lucide-react"
+import PhoneInput from 'react-phone-number-input'
+import 'react-phone-number-input/style.css'
 
 interface PersonalInfoStepProps {
   formData: FormData
@@ -22,7 +24,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
   }
 
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-lg shadow-sm border border-border p-6 sm:p-8">
+    <div className="max-w-[768px] mx-auto bg-white rounded-lg shadow-sm border border-border p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Full Name */}
         <div className="space-y-2">
@@ -61,63 +63,33 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
           <Label htmlFor="phone" className="text-sm font-medium">
             Mobile/WhatsApp
           </Label>
-          <div className="flex gap-2">
-            <Select value={formData.countryCode} onValueChange={(value) => updateFormData({ countryCode: value })}>
-              <SelectTrigger className="w-24">
-                <SelectValue>
-                  <span className="flex items-center gap-2">
-                    <span className="text-lg">🇧🇩</span>
-                    <span className="text-sm">{formData.countryCode}</span>
-                  </span>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="+88">
-                  <span className="flex items-center gap-2">
-                    <span>🇧🇩</span>
-                    <span>+88</span>
-                  </span>
-                </SelectItem>
-                <SelectItem value="+1">
-                  <span className="flex items-center gap-2">
-                    <span>🇺🇸</span>
-                    <span>+1</span>
-                  </span>
-                </SelectItem>
-                <SelectItem value="+44">
-                  <span className="flex items-center gap-2">
-                    <span>🇬🇧</span>
-                    <span>+44</span>
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="Enter your phone number"
-              value={formData.phone}
-              onChange={(e) => updateFormData({ phone: e.target.value })}
-              required
-              className="flex-1"
-            />
-          </div>
+          <PhoneInput
+            value={formData.phone}
+            onChange={(value) => updateFormData({ phone: value || "" })}
+            placeholder="Enter your phone number"
+            defaultCountry="BD"
+            className="phone-input-custom"
+            international
+            countryCallingCodeEditable={false}
+            displayInitialValueAsLocalNumber={false}
+          />
         </div>
 
         {/* Where did you hear about us? */}
-        <div className="space-y-2">
+        <div className="space-y-2 w-full">
           <Label htmlFor="referralSource" className="text-sm font-medium">
             Where did you hear about us?
           </Label>
           <Select
+          // className="w-full"
             value={formData.referralSource}
             onValueChange={(value) => updateFormData({ referralSource: value })}
             required
           >
-            <SelectTrigger id="referralSource">
+            <SelectTrigger id="referralSource" className="w-full">
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent >
               <SelectItem value="google">Google Search</SelectItem>
               <SelectItem value="social">Social Media</SelectItem>
               <SelectItem value="referral">Referral</SelectItem>
