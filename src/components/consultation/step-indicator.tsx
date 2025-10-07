@@ -34,7 +34,7 @@ export function StepIndicator({ steps, currentStep, showThankYou }: StepIndicato
               </div>
               <span
                 className={cn(
-                  "mt-1 sm:mt-2 text-[10px] sm:text-xs font-medium text-center leading-tight",
+                  "mt-1 sm:mt-2 text-[10px] sm:text-xs font-medium text-center sm:whitespace-pre whitespace-normal leading-tight",
                   currentStep >= step.number ? "text-foreground" : "text-muted-foreground",
                 )}
               >

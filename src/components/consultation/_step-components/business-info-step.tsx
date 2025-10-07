@@ -75,9 +75,24 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
           <Input
             id="website"
             type="url"
-            placeholder="https://example.com"
+            placeholder="example.com"
             value={formData.website}
-            onChange={(e) => updateFormData({ website: e.target.value })}
+            onChange={(e) => {
+              let value = e.target.value
+              // Auto-add https:// if user doesn't include protocol
+              if (value && !value.match(/^https?:\/\//i)) {
+                value = `https://${value}`
+              }
+              updateFormData({ website: value })
+            }}
+            onBlur={(e) => {
+              let value = e.target.value
+              // Auto-add https:// on blur if user doesn't include protocol
+              if (value && !value.match(/^https?:\/\//i)) {
+                value = `https://${value}`
+                updateFormData({ website: value })
+              }
+            }}
             className="w-full sm:h-12 h-9"
           />
         </div>

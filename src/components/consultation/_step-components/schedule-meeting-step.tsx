@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import type { FormData } from "../consultation-booking"
 import { ChevronLeft, ChevronRight, Clock, Video, Globe, AlertCircle } from "lucide-react"
@@ -14,10 +14,11 @@ import {
   isSameMonth,
   isSameDay,
   getDay,
+  isBefore,
+  startOfDay,
 } from "date-fns"
 import { cn } from "@/lib/utils"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getEventTypes, getAvailableTimes, type EventType } from "@/lib/api"
+import { getAvailableTimes, createCalcomBooking, sendContactEmail, formatFormDataToMessage } from "@/lib/api"
 
 interface ScheduleMeetingStepProps {
   formData: FormData
@@ -29,21 +30,17 @@ interface ScheduleMeetingStepProps {
 }
 
 export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBack, isSubmitting = false, submitError }: ScheduleMeetingStepProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 9)) // October 2025
-  const [timezone, setTimezone] = useState("Asia/Dhaka")
+  const [currentMonth, setCurrentMonth] = useState(new Date()) // Current month
   const [timeFormat, setTimeFormat] = useState("12h")
   const [slotsData, setSlotsData] = useState<Record<string, Array<{ start: string; end: string }>> | null>(null)
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slotsError, setSlotsError] = useState<string | null>(null)
   
-  // Event types state
-  const [eventTypes, setEventTypes] = useState<EventType[]>([])
-  const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null)
-  const [loadingEventTypes, setLoadingEventTypes] = useState(false)
-  const [eventTypesError, setEventTypesError] = useState<string | null>(null)
-  const [availableTimezones, setAvailableTimezones] = useState<string[]>([])
+  // Fixed meeting duration and timezone
+  const selectedDuration = "30"
+  const timezone = "Asia/Dhaka"
 
-  // helper: format ISO time string into user's selected timezone and format
+  // Helper function to format time from API response
   const formatSlotTime = (iso: string) => {
     try {
       const date = new Date(iso)
@@ -53,14 +50,13 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
         hour12: timeFormat === "12h",
         timeZone: timezone,
       }
-      // use en-US to ensure AM/PM when hour12 true
       return new Intl.DateTimeFormat("en-US", opts).format(date)
     } catch (e) {
       return iso
     }
   }
 
-  // helper: produce the date key used by API data (yyyy-MM-dd)
+  // Helper function to format date key (yyyy-MM-dd)
   const formatDateKey = (d: Date) => {
     try {
       return format(d, "yyyy-MM-dd")
@@ -69,145 +65,114 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
     }
   }
 
-  // keep a small fallback in case API is not available
-  const timeSlots12h = ["09:00 AM", "09:30 AM", "10:00 AM"]
-  const timeSlots24h = ["09:00", "09:30", "10:00"]
-
-  // Fallback slots in case API fails
-  const FALLBACK_SLOTS: Record<string, Array<{ start: string; end: string }>> = {
-    "2025-10-11": [
-      { start: "2025-10-11T09:00:00.000+06:00", end: "2025-10-11T09:30:00.000+06:00" },
-      { start: "2025-10-11T09:30:00.000+06:00", end: "2025-10-11T10:00:00.000+06:00" },
-      { start: "2025-10-11T10:00:00.000+06:00", end: "2025-10-11T10:30:00.000+06:00" },
-    ],
-    "2025-10-12": [
-      { start: "2025-10-12T09:00:00.000+06:00", end: "2025-10-12T09:30:00.000+06:00" },
-      { start: "2025-10-12T09:30:00.000+06:00", end: "2025-10-12T10:00:00.000+06:00" },
-    ],
-  }
-
-  // Fetch event types from API
-  const fetchEventTypes = async () => {
-    setLoadingEventTypes(true)
-    setEventTypesError(null)
-    
-    try {
-      console.log('🔄 Fetching event types from API...')
-      const data = await getEventTypes()
-      const allEventTypes = data.eventTypes.data.eventTypeGroups.flatMap(group => group.eventTypes)
-      console.log('✅ Event Types Success:', allEventTypes)
-      setEventTypes(allEventTypes)
-      
-      // Extract unique timezones from event types
-      const timezones = [...new Set(allEventTypes.map(eventType => eventType.owner.timeZone))]
-      console.log('✅ Available Timezones from API:', timezones)
-      setAvailableTimezones(timezones)
-      
-      // Set default timezone from first event type
-      if (timezones.length > 0) {
-        setTimezone(timezones[0])
-      }
-    } catch (error) {
-      console.error('❌ Event Types API Failed:', error)
-      setEventTypesError('Failed to load event types.')
-    } finally {
-      setLoadingEventTypes(false)
-    }
-  }
-
   // Fetch available slots from API
-  const fetchAvailableSlots = async (eventType: EventType, timezone: string) => {
+  const fetchAvailableSlots = async (startDate: Date, endDate: Date) => {
     setLoadingSlots(true)
     setSlotsError(null)
     
     try {
       console.log('🔄 Fetching available slots from API...')
       
-      // Calculate date range (next 7 days)
-      const startDate = new Date()
-      const endDate = new Date()
-      endDate.setDate(startDate.getDate() + 7)
-      
       const params = {
-        eventTypeSlug: eventType.slug,
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
+        eventTypeSlug: `${selectedDuration}min`,
+        startDate: formatDateKey(startDate),
+        endDate: formatDateKey(endDate),
         timezone: timezone
       }
       
+      console.log('📅 API Params:', params)
       const data = await getAvailableTimes(params)
-      console.log('✅ API Success - Setting real data:', data.slots.data)
+      console.log('✅ API Success:', data)
       setSlotsData(data.slots.data)
     } catch (error) {
-      console.error('❌ API Failed - Using fallback data:', error)
-      setSlotsError('Real-time availability temporarily unavailable. Showing sample times.')
-      // Use fallback slots so the component still works
-      console.log('🔄 Setting fallback slots:', FALLBACK_SLOTS)
-      setSlotsData(FALLBACK_SLOTS)
+      console.error('❌ API Failed:', error)
+      setSlotsError('Failed to load available time slots.')
+      setSlotsData(null)
     } finally {
       setLoadingSlots(false)
     }
   }
 
-  // Fetch event types on component mount
+  // Fetch slots for current month on component mount
   useEffect(() => {
-    fetchEventTypes()
-  }, [])
-
-  // Handle event type selection
-  const handleEventTypeChange = (eventTypeId: string) => {
-    const eventType = eventTypes.find(et => et.id.toString() === eventTypeId)
-    if (eventType) {
-      setSelectedEventType(eventType)
-      setTimezone(eventType.owner.timeZone)
-      // Fetch available slots for the selected event type
-      fetchAvailableSlots(eventType, eventType.owner.timeZone)
-    }
-  }
-
-  // Handle timezone change
-  const handleTimezoneChange = (newTimezone: string) => {
-    setTimezone(newTimezone)
-    if (selectedEventType) {
-      fetchAvailableSlots(selectedEventType, newTimezone)
-    }
-  }
-
-  // prepare a Set of available date keys to quickly check calendar days
-  const availableDateKeys = useMemo(() => {
-    if (!slotsData) return new Set<string>()
-    return new Set(Object.keys(slotsData))
-  }, [slotsData])
-
-  // helper to check if a calendar day has slots
-  const dayHasSlots = (d: Date) => availableDateKeys.has(formatDateKey(d))
-
-  // derive slots for the selected date (key format: yyyy-MM-dd)
-  const selectedDateKey = formData.selectedDate ? formatDateKey(formData.selectedDate) : null
-  const availableForDate: Array<{ start: string; end: string }> = selectedDateKey && slotsData ? (slotsData[selectedDateKey] || []) : []
-
-  // prepare display items: label (start - end) and unique key (start_iso)
-  const displaySlots: Array<{ key: string; label: string }> = availableForDate.length
-    ? availableForDate.map((s) => ({ 
-        key: s.start, 
-        label: `${formatSlotTime(s.start)} - ${formatSlotTime(s.end)}` 
-      }))
-    : []
+    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0)
+    fetchAvailableSlots(startOfMonth, endOfMonth)
+  }, [currentMonth])
 
   const handleDateSelect = (date: Date) => {
     updateFormData({ selectedDate: date })
+    // Fetch slots for the selected date (same day as start and end)
+    fetchAvailableSlots(date, date)
   }
 
   const handleTimeSelect = (time: string) => {
     updateFormData({ selectedTime: time })
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!formData.selectedDate || !formData.selectedTime) {
       alert("Please select both a date and time")
       return
     }
-    onConfirm()
+
+    try {
+      // Extract start time from selected time (format: "09:00 AM - 09:30 AM")
+      const timeParts = formData.selectedTime.split(' - ')
+      const startTimeStr = timeParts[0]
+      
+      // Convert to ISO format for the API
+      const selectedDateStr = format(formData.selectedDate, 'yyyy-MM-dd')
+      const startTimeISO = `${selectedDateStr}T${startTimeStr.includes('AM') || startTimeStr.includes('PM') 
+        ? convertTo24Hour(startTimeStr) 
+        : startTimeStr}:00.000+06:00`
+
+      // API 1: Create Cal.com booking
+      const bookingData = {
+        name: formData.fullName,
+        email: formData.email,
+        timeZone: timezone,
+        startTime: startTimeISO,
+        eventTypeId: 3583077 // Fixed event type ID for 30min meeting
+      }
+
+      console.log('🔄 Submitting booking data:', bookingData)
+      await createCalcomBooking(bookingData)
+
+      // API 2: Send contact email
+      const message = formatFormDataToMessage(formData)
+      const emailData = {
+        email: formData.email,
+        name: formData.fullName,
+        message: message
+      }
+
+      console.log('🔄 Sending contact email:', emailData)
+      await sendContactEmail(emailData)
+
+      // Both APIs successful, proceed with confirmation
+      onConfirm()
+      
+    } catch (error) {
+      console.error('❌ Booking submission failed:', error)
+      alert('Failed to book your consultation. Please try again.')
+    }
+  }
+
+  // Helper function to convert 12h to 24h format
+  const convertTo24Hour = (time12h: string) => {
+    const [time, modifier] = time12h.split(' ')
+    let [hours, minutes] = time.split(':')
+    
+    if (hours === '12') {
+      hours = '00'
+    }
+    
+    if (modifier === 'PM') {
+      hours = (parseInt(hours, 10) + 12).toString()
+    }
+    
+    return `${hours.padStart(2, '0')}:${minutes}`
   }
 
   const monthStart = startOfMonth(currentMonth)
@@ -218,7 +183,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
 
   return (
     <>
-      <div className="max-w-5xl mx-auto bg-white rounded-xl border border-gray-200 shadow-sm">
+      <div className="max-w-5xl mx-auto bg-white rounded-xl border border-gray-200 ">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_230px]">
           {/* --- Left Column: Profile + Meeting Details --- */}
           <div className="border-r-0 lg:border-r border-gray-200 p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
@@ -235,7 +200,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
             {/* Meeting Info */}
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
-                {selectedEventType ? selectedEventType.title : "SEO Strategy Call"}
+                {selectedDuration} Min Meeting
               </h2>
               <p className="text-sm text-gray-600 mt-2 leading-relaxed">
                 Book your strategy call today to explore how SEO and AI-driven search optimization can accelerate your
@@ -247,24 +212,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
             <div className="space-y-3 mt-2">
               <div className="flex items-center gap-3 text-sm text-gray-700">
                 <Clock className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
-                {loadingEventTypes ? (
-                  <span className="text-[#0C1115]">Loading...</span>
-                ) : eventTypesError ? (
-                  <span className="text-red-500">Error loading</span>
-                ) : (
-                  <Select value={selectedEventType?.id.toString() || ""} onValueChange={handleEventTypeChange}>
-                    <SelectTrigger className="h-8 border-0 p-0 text-sm text-[#0C1115] shadow-none hover:text-gray-900 focus:ring-0 w-auto">
-                      <SelectValue placeholder="Select duration" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {eventTypes.map((eventType) => (
-                        <SelectItem key={eventType.id} value={eventType.id.toString()}>
-                          {eventType.title} ({eventType.length} min)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                <span className="text-[#0C1115]">30 Min Meeting (30 min)</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-700">
                 <Video className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
@@ -272,24 +220,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <Globe className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
-                {loadingEventTypes ? (
-                  <span className="text-[#0C1115]">Loading...</span>
-                ) : eventTypesError ? (
-                  <span className="text-red-500">Error loading</span>
-                ) : (
-                  <Select value={timezone} onValueChange={handleTimezoneChange}>
-                    <SelectTrigger className="h-8 border-0 p-0 text-sm text-[#0C1115] shadow-none hover:text-gray-900 focus:ring-0">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableTimezones.map((tz) => (
-                        <SelectItem key={tz} value={tz}>
-                          {tz}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                <span className="text-[#0C1115]">Asia/Dhaka</span>
               </div>
             </div>
 
@@ -303,24 +234,25 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
           <div className="p-4 sm:p-6 border-r-0 lg:border-r border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">{format(currentMonth, "MMMM yyyy")}</h3>
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+               <div className="flex gap-1">
+                 <Button
+                   variant="ghost"
+                   size="icon"
+                   className="h-8 w-8"
+                   onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                   disabled={isBefore(startOfMonth(subMonths(currentMonth, 1)), startOfMonth(new Date()))}
+                 >
+                   <ChevronLeft className="h-4 w-4" />
+                 </Button>
+                 <Button
+                   variant="ghost"
+                   size="icon"
+                   className="h-8 w-8"
+                   onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                 >
+                   <ChevronRight className="h-4 w-4" />
+                 </Button>
+               </div>
             </div>
 
             {/* Days header */}
@@ -341,24 +273,28 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
 
                 const isSelected = formData.selectedDate && isSameDay(day, formData.selectedDate)
                 const isCurrentMonth = isSameMonth(day, currentMonth)
+                const isPastDate = isBefore(day, startOfDay(new Date()))
+                const dateKey = formatDateKey(day)
+                const hasSlots = slotsData && slotsData[dateKey] && slotsData[dateKey].length > 0
 
                 return (
-                  <button
-                    key={day.toISOString()}
-                    type="button"
-                    onClick={() => handleDateSelect(day)}
-                    // only disable if calendar month day and slotsData loaded and day has no slots
-                    disabled={!isCurrentMonth || (slotsData ? !dayHasSlots(day) : false)}
-                    className={cn(
-                      "aspect-square min-h-[32px] sm:min-h-[40px] flex items-center justify-center text-xs sm:text-sm rounded-md transition-colors",
-                      "hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent",
-                      isSelected && "bg-[#FF8C42] text-white font-semibold",
-                      !isSelected && isCurrentMonth && "text-gray-900",
-                      !isSelected && !isCurrentMonth && "text-gray-400",
-                    )}
-                  >
-                    {format(day, "d")}
-                  </button>
+                   <button
+                     key={day.toISOString()}
+                     type="button"
+                     onClick={() => handleDateSelect(day)}
+                     disabled={!isCurrentMonth || isPastDate}
+                     className={cn(
+                       "aspect-square min-h-[32px] sm:min-h-[40px] flex items-center justify-center text-xs sm:text-sm rounded-md transition-colors",
+                       "hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent",
+                       isSelected && "bg-[#FF8C42] text-white font-semibold",
+                       !isSelected && isCurrentMonth && !isPastDate && "text-gray-900",
+                       !isSelected && !isCurrentMonth && "text-gray-400",
+                       isPastDate && "text-gray-300",
+                       hasSlots && !isSelected && isCurrentMonth && !isPastDate && "border border-green-300 bg-green-50",
+                     )}
+                   >
+                     {format(day, "d")}
+                   </button>
                 )
               })}
             </div>
@@ -394,47 +330,52 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
               </div>
             </div>
 
-            <div className="space-y-2 max-h-[200px] sm:max-h-[300px] overflow-y-auto">
-              {loadingSlots && (
-                <div className="text-sm text-gray-500 p-2">Loading available time slots...</div>
-              )}
-              {slotsError && (
-                <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-3 mb-4">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="font-medium">Note:</span>
-                  </div>
-                  <div className="mt-1">{slotsError}</div>
-                  <button 
-                    onClick={() => selectedEventType && fetchAvailableSlots(selectedEventType, timezone)}
-                    className="mt-2 px-3 py-1 bg-orange-500 text-white rounded text-xs hover:bg-orange-600"
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-              {!loadingSlots && !slotsError && formData.selectedDate && displaySlots.length === 0 && (
-                <div className="text-sm text-gray-500 p-2">No available slots for this date.</div>
-              )}
-              {!loadingSlots && !slotsError && displaySlots.length > 0 &&
-                displaySlots.map((slot) => (
-                  <button
-                    key={slot.key}
-                    type="button"
-                    onClick={() => handleTimeSelect(slot.label)}
-                    disabled={!formData.selectedDate}
-                    className={cn(
-                      "w-full px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-md transition-colors text-left",
-                      "disabled:opacity-50 disabled:cursor-not-allowed",
-                      formData.selectedTime === slot.label
-                        ? "bg-[#FF8C42] text-white"
-                        : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-900",
-                    )}
-                  >
-                    {slot.label}
-                  </button>
-                ))}
-            </div>
+             <div className="space-y-2 max-h-[200px] sm:max-h-[300px] overflow-y-auto">
+               {!formData.selectedDate && (
+                 <div className="text-sm text-gray-500 p-2">Please select a date first</div>
+               )}
+               {loadingSlots && (
+                 <div className="text-sm text-gray-500 p-2">Loading available time slots...</div>
+               )}
+               {slotsError && (
+                 <div className="text-sm text-red-500 p-2">
+                   <div>{slotsError}</div>
+                   <button 
+                     onClick={() => formData.selectedDate && fetchAvailableSlots(formData.selectedDate, formData.selectedDate)}
+                     className="mt-2 px-3 py-1 bg-orange-500 text-white rounded text-xs hover:bg-orange-600"
+                   >
+                     Retry
+                   </button>
+                 </div>
+               )}
+               {formData.selectedDate && !loadingSlots && !slotsError && slotsData && (() => {
+                 const selectedDateKey = formatDateKey(formData.selectedDate)
+                 const availableSlots = slotsData[selectedDateKey] || []
+                 
+                 if (availableSlots.length === 0) {
+                   return <div className="text-sm text-gray-500 p-2">No available slots for this date.</div>
+                 }
+                 
+                 return availableSlots.map((slot) => {
+                   const timeLabel = `${formatSlotTime(slot.start)} - ${formatSlotTime(slot.end)}`
+                   return (
+                     <button
+                       key={slot.start}
+                       type="button"
+                       onClick={() => handleTimeSelect(timeLabel)}
+                       className={cn(
+                         "w-full px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-md transition-colors text-left",
+                         formData.selectedTime === timeLabel
+                           ? "bg-[#FF8C42] text-white"
+                           : "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-900",
+                       )}
+                     >
+                       {timeLabel}
+                     </button>
+                   )
+                 })
+               })()}
+             </div>
           </div>
         </div>
         

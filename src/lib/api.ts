@@ -27,7 +27,7 @@ export interface FormData {
 }
 
 export const sendContactEmail = async (payload: ContactEmailPayload): Promise<Response> => {
-  const response = await fetch('https://contact-form.up.railway.app/api/sendContactEmail', {
+  const response = await fetch(`${process.env.BACKEND_API_URL}/sendContactEmail`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export interface PartialFormPayload {
 }
 
 export const sendPartialFormData = async (payload: PartialFormPayload): Promise<Response> => {
-  const response = await fetch('https://contact-form.up.railway.app/api/sendPartialFormData', {
+  const response = await fetch(`${process.env.BACKEND_API_URL}/sendPartialFormData`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -160,7 +160,7 @@ export interface AvailableSlotsResponse {
 export const getEventTypes = async (): Promise<EventTypesResponse> => {
   try {
     console.log('🌐 Making API call to getEventTypes...')
-    const response = await fetch('https://contact-form.up.railway.app/api/getEventTypes', {
+    const response = await fetch(`${process.env.BACKEND_API_URL}/getEventTypes`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -190,17 +190,58 @@ export interface AvailableTimesParams {
   timezone: string
 }
 
-export const getAvailableTimes = async (params: AvailableTimesParams): Promise<AvailableSlotsResponse> => {
+// Create Cal.com booking
+export const createCalcomBooking = async (bookingData: {
+  name: string
+  email: string
+  timeZone: string
+  startTime: string
+  eventTypeId: number
+}) => {
   try {
-    console.log('🌐 Making API call to getAvailableTimes with params:', params)
+    console.log('🔄 Creating Cal.com booking:', bookingData)
     
-    const response = await fetch('https://contact-form.up.railway.app/api/getAvailableTimes', {
+    const response = await fetch('https://contact-form.up.railway.app/api/createCalcomBooking', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify(params),
+      body: JSON.stringify(bookingData),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ Cal.com Booking Error:', errorText)
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('✅ Cal.com Booking Success:', data)
+    return data
+  } catch (error) {
+    console.error('❌ Cal.com Booking Failed:', error)
+    throw error
+  }
+}
+
+export const getAvailableTimes = async (params: AvailableTimesParams): Promise<AvailableSlotsResponse> => {
+  try {
+    console.log('🌐 Making API call to getAvailableTimes with params:', params)
+    
+    // Build URL with query parameters for GET request
+    const queryParams = new URLSearchParams({
+      eventTypeSlug: params.eventTypeSlug,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      timezone: params.timezone
+    })
+    
+    const response = await fetch(`https://contact-form.up.railway.app/api/getAvailableTimes?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
     })
 
     console.log('📡 Response status:', response.status, response.statusText)

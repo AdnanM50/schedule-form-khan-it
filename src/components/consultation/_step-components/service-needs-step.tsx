@@ -84,7 +84,7 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
   }
 
   return (
-    <div className="max-w-[768px] mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8">
+    <div className="max-w-[768px] mx-auto bg-white rounded-lg  border border-gray-200 p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Goals Section */}
         <div className="space-y-4">
@@ -96,7 +96,7 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
                   id={goal.id}
                   checked={formData.goals.includes(goal.id)}
                   onCheckedChange={() => handleGoalToggle(goal.id)}
-                  className="!w-4 !h-4 !border-2 !border-orange-500 !bg-white data-[state=checked]:!bg-orange-500 data-[state=checked]:!border-orange-500 data-[state=checked]:!text-white"
+                  className="!w-4 !h-4 !border !border-orange-500 !bg-white data-[state=checked]:!bg-orange-500 data-[state=checked]:!border-orange-500 data-[state=checked]:!text-white [&>span]:!flex [&>span]:!items-center [&>span]:!justify-center"
                 />
                 <Label htmlFor={goal.id} className="text-sm font-normal cursor-pointer text-gray-700">
                   {goal.label}
@@ -127,7 +127,7 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
                 <RadioGroupItem 
                   value={service.id} 
                   id={service.id} 
-                  className="!mt-0.5 !w-4 !h-4 !border-2 !border-orange-500 !bg-white data-[state=checked]:!bg-orange-500 data-[state=checked]:!border-orange-500 data-[state=checked]:!text-white" 
+                  className="!mt-0.5 !w-4 !h-4 !border !border-orange-500 !bg-white data-[state=checked]:!bg-orange-500 data-[state=checked]:!border-orange-500 data-[state=checked]:!text-white [&>span]:!flex [&>span]:!items-center [&>span]:!justify-center" 
                 />
                 <div className="flex-1">
                   <Label htmlFor={service.id} className="text-sm font-semibold cursor-pointer block text-gray-800">
