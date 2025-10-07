@@ -19,6 +19,7 @@ import {
 } from "date-fns"
 import { cn } from "@/lib/utils"
 import { getAvailableTimes, createCalcomBooking, sendContactEmail, formatFormDataToMessage } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 
 interface ScheduleMeetingStepProps {
   formData: FormData
@@ -35,6 +36,8 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
   const [slotsData, setSlotsData] = useState<Record<string, Array<{ start: string; end: string }>> | null>(null)
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slotsError, setSlotsError] = useState<string | null>(null)
+  const [isBookingSubmitting, setIsBookingSubmitting] = useState(false)
+  const { toast } = useToast()
   
   // Fixed meeting duration and timezone
   const selectedDuration = "30"
@@ -112,9 +115,15 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
 
   const handleConfirm = async () => {
     if (!formData.selectedDate || !formData.selectedTime) {
-      alert("Please select both a date and time")
+      toast({
+        title: "Selection Required",
+        description: "Please select both a date and time",
+        variant: "destructive",
+      })
       return
     }
+
+    setIsBookingSubmitting(true)
 
     try {
       // Extract start time from selected time (format: "09:00 AM - 09:30 AM")
@@ -155,7 +164,13 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
       
     } catch (error) {
       console.error('❌ Booking submission failed:', error)
-      alert('Failed to book your consultation. Please try again.')
+      toast({
+        title: "Booking Failed",
+        description: error instanceof Error ? error.message : 'Failed to book your consultation. Please try again.',
+        variant: "destructive",
+      })
+    } finally {
+      setIsBookingSubmitting(false)
     }
   }
 
@@ -402,9 +417,16 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
             type="button"
             onClick={handleConfirm}
             className="px-4 sm:px-6 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white font-medium text-sm sm:text-base"
-            disabled={!formData.selectedDate || !formData.selectedTime || isSubmitting}
+            disabled={!formData.selectedDate || !formData.selectedTime || isBookingSubmitting}
           >
-            {isSubmitting ? "Submitting..." : "Confirm Booking"}
+            {isBookingSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Submitting...
+              </div>
+            ) : (
+              "Confirm Booking"
+            )}
           </Button>
         </div>
     </>

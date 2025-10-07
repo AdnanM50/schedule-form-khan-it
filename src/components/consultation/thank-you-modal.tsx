@@ -1,31 +1,37 @@
 "use client"
 
-import { Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 export function ThankYouScreen() {
   return (
-    <div className="max-w-5xl mx-auto bg-white rounded-xl border border-gray-200 shadow-sm p-8">
+    <div className="max-w-[768px] mx-auto bg-white rounded-[16px] border border-gray-200 p-4 sm:p-6">
       {/* Thank You Content */}
-      <div className="text-center">
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-[#FF8C42] rounded-full flex items-center justify-center">
-            <Calendar className="h-8 w-8 text-white" />
+      <div className="text-center rounded-[24px] bg-[#f4f3fe] pb-6 ">
+        <div className="flex justify-center p-6 md:p-10">
+          <div className="w-20 h-20 sm:w-24 sm:h-20 bg-orange-100 p-4 rounded-[40px] flex items-center justify-center">
+           <Image 
+           src={'/calendar.png'}
+           alt="calendar"
+           height={4000}
+           width={4000}
+           className="w-16 object-fill sm:w-20 h-16 sm:h-16 "
+           />
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-[#0A1F44]">Thank You!</h2>
-        <p className="text-sm text-gray-600 leading-relaxed mt-4">
+        <h2 className="text-3xl sm:text-[40px] font-bold  text-[#061237]">Thank You!</h2>
+        <p className="text-sm text-gray-600 leading-relaxed mt-4 px-4 md:px-0">
           Your information has been submitted successfully.
           <br />
           Your meeting is confirmed! Check your email for the invitation.
         </p>
 
         {/* Buttons */}
-        <div className="flex justify-center gap-4 mt-8">
-          <Button className="px-6 py-2 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white rounded-md">
+        <div className="flex sm:flex-row flex-col px-4 md:px-0 justify-center gap-4 mb-4 mt-4 ">
+          <Button className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md">
             Go to Home
           </Button>
-          <Button className="px-6 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-md">
+          <Button className="px-6 py-2 bg-white border border-gray-900 hover:bg-gray-50 text-gray-900 rounded-md">
             Explore our Services
           </Button>
         </div>

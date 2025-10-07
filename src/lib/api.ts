@@ -27,7 +27,7 @@ export interface FormData {
 }
 
 export const sendContactEmail = async (payload: ContactEmailPayload): Promise<Response> => {
-  const response = await fetch(`${process.env.BACKEND_API_URL}/sendContactEmail`, {
+  const response = await fetch('https://contact-form.up.railway.app/api/sendContactEmail', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export interface PartialFormPayload {
 }
 
 export const sendPartialFormData = async (payload: PartialFormPayload): Promise<Response> => {
-  const response = await fetch(`${process.env.BACKEND_API_URL}/sendPartialFormData`, {
+  const response = await fetch('https://contact-form.up.railway.app/api/sendPartialFormData', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -160,7 +160,7 @@ export interface AvailableSlotsResponse {
 export const getEventTypes = async (): Promise<EventTypesResponse> => {
   try {
     console.log('🌐 Making API call to getEventTypes...')
-    const response = await fetch(`${process.env.BACKEND_API_URL}/getEventTypes`, {
+    const response = await fetch('https://contact-form.up.railway.app/api/getEventTypes', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -229,19 +229,18 @@ export const getAvailableTimes = async (params: AvailableTimesParams): Promise<A
   try {
     console.log('🌐 Making API call to getAvailableTimes with params:', params)
     
-    // Build URL with query parameters for GET request
-    const queryParams = new URLSearchParams({
-      eventTypeSlug: params.eventTypeSlug,
-      startDate: params.startDate,
-      endDate: params.endDate,
-      timezone: params.timezone
-    })
-    
-    const response = await fetch(`https://contact-form.up.railway.app/api/getAvailableTimes?${queryParams}`, {
-      method: 'GET',
+    const response = await fetch('https://contact-form.up.railway.app/api/getAvailableTimes', {
+      method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+      body: JSON.stringify({
+        eventTypeSlug: params.eventTypeSlug,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        timezone: params.timezone
+      }),
     })
 
     console.log('📡 Response status:', response.status, response.statusText)
