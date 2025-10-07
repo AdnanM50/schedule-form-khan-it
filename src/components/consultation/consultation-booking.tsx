@@ -6,8 +6,10 @@ import { PersonalInfoStep } from "./_step-components/personal-info-step"
 import { BusinessInfoStep } from "./_step-components/business-info-step"
 import { ServiceNeedsStep } from "./_step-components/service-needs-step"
 import { ScheduleMeetingStep } from "./_step-components/schedule-meeting-step"
-import { ThankYouModal } from "./thank-you-modal"
+import { ThankYouScreen } from "./thank-you-modal"
 import Image from "next/image"
+import { sendContactEmail, formatFormDataToMessage } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 
 export interface FormData {
   // Personal Info
@@ -42,6 +44,9 @@ const steps = [
 export default function ConsultationBooking() {
   const [currentStep, setCurrentStep] = useState(1)
   const [showThankYou, setShowThankYou] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const { toast } = useToast()
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
@@ -74,8 +79,44 @@ export default function ConsultationBooking() {
     }
   }
 
-  const handleConfirmBooking = () => {
-    setShowThankYou(true)
+  const handleConfirmBooking = async () => {
+    try {
+      setIsSubmitting(true)
+      setSubmitError(null)
+      
+      // Format the form data into the message string as shown in the API example
+      const message = formatFormDataToMessage(formData)
+      
+      // Send the contact email
+      await sendContactEmail({
+        name: formData.fullName,
+        email: formData.email,
+        message: message
+      })
+      
+      // Show success toast
+      toast({
+        title: "Consultation Request Submitted!",
+        description: "Thank you for your interest. We'll get back to you soon.",
+        duration: 5000,
+      })
+      
+      // Show success screen
+      setShowThankYou(true)
+    } catch (error) {
+      console.error('Failed to submit form:', error)
+      setSubmitError('Failed to submit your consultation request. Please try again.')
+      
+      // Show error toast
+      toast({
+        title: "Submission Failed",
+        description: "Failed to submit your consultation request. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -101,7 +142,7 @@ export default function ConsultationBooking() {
         </div>
 
         {/* Step Indicator */}
-        <StepIndicator steps={steps} currentStep={currentStep} />
+        <StepIndicator steps={steps} currentStep={currentStep} showThankYou={showThankYou} />
 
         {/* Step Content */}
         <div className="mt-8 sm:mt-12">
@@ -125,18 +166,21 @@ export default function ConsultationBooking() {
             />
           )}
           {currentStep === 4 && (
-            <ScheduleMeetingStep
-              formData={formData}
-              updateFormData={updateFormData}
-              onConfirm={handleConfirmBooking}
-              onBack={handleBack}
-            />
+            showThankYou ? (
+              <ThankYouScreen />
+            ) : (
+              <ScheduleMeetingStep
+                formData={formData}
+                updateFormData={updateFormData}
+                onConfirm={handleConfirmBooking}
+                onBack={handleBack}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
+              />
+            )
           )}
         </div>
       </div>
-
-      {/* Thank You Modal */}
-      {showThankYou && <ThankYouModal onClose={() => setShowThankYou(false)} />}
     </div>
   )
 }

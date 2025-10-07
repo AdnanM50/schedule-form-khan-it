@@ -38,7 +38,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
             value={formData.fullName}
             onChange={(e) => updateFormData({ fullName: e.target.value })}
             required
-            className="w-full"
+            className="w-full sm:h-12 h-9"
           />
         </div>
 
@@ -54,7 +54,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
             value={formData.email}
             onChange={(e) => updateFormData({ email: e.target.value })}
             required
-            className="w-full"
+            className="w-full sm:h-12 h-9"
           />
         </div>
 
@@ -68,7 +68,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
             onChange={(value) => updateFormData({ phone: value || "" })}
             placeholder="Enter your phone number"
             defaultCountry="BD"
-            className="phone-input-custom"
+            className="phone-input-custom sm:!h-12 !h-9 w-full"
             international
             countryCallingCodeEditable={false}
             displayInitialValueAsLocalNumber={false}
@@ -76,7 +76,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
         </div>
 
         {/* Where did you hear about us? */}
-        <div className="space-y-2 w-full">
+        <div className="space-y-2 w-full ">
           <Label htmlFor="referralSource" className="text-sm font-medium">
             Where did you hear about us?
           </Label>
@@ -86,7 +86,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
             onValueChange={(value) => updateFormData({ referralSource: value })}
             required
           >
-            <SelectTrigger id="referralSource" className="w-full">
+            <SelectTrigger id="referralSource" className="w-full h-12">
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
             <SelectContent >

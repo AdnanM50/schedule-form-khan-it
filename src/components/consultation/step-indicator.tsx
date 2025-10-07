@@ -9,9 +9,10 @@ interface Step {
 interface StepIndicatorProps {
   steps: Step[]
   currentStep: number
+  showThankYou?: boolean
 }
 
-export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
+export function StepIndicator({ steps, currentStep, showThankYou }: StepIndicatorProps) {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between max-w-2xl mx-auto">
@@ -22,14 +23,14 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
               <div
                 className={cn(
                   "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
-                  currentStep > step.number
+                  currentStep > step.number || (currentStep === step.number && showThankYou)
                     ? "bg-[#FF8C42] text-white"
                     : currentStep === step.number
                       ? "bg-[#FF8C42] text-white"
                       : "bg-gray-200 text-gray-500",
                 )}
               >
-                {currentStep > step.number ? <Check className="w-5 h-5" /> : step.number}
+                {currentStep > step.number || (currentStep === step.number && showThankYou) ? <Check className="w-5 h-5" /> : step.number}
               </div>
               <span
                 className={cn(

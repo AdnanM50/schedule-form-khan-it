@@ -37,7 +37,7 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
             value={formData.companyName}
             onChange={(e) => updateFormData({ companyName: e.target.value })}
             required
-            className="w-full"
+            className="w-full sm:h-12 h-9"
           />
         </div>
 
@@ -78,7 +78,7 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
             placeholder="https://example.com"
             value={formData.website}
             onChange={(e) => updateFormData({ website: e.target.value })}
-            className="w-full"
+            className="w-full sm:h-12 h-9"
           />
         </div>
 

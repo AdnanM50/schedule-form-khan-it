@@ -296,6 +296,9 @@ html.theme-changing, html.theme-changing body {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  rotate: -43deg;
+  margin-left: 9px;
+  transition: transform 0.2s ease;
 }
 
 /* Add a clear down arrow icon */
@@ -406,4 +409,6 @@ html.theme-changing, html.theme-changing body {
   color: #6b7280;
   font-weight: 500;
 }
-
+.PhoneInputCountry{
+  padding: 0 10px !important;
+}
