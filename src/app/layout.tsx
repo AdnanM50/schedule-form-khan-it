@@ -19,7 +19,7 @@ export default function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className={`antialiased`}
+        className={`antialiased `}
       >
 
         {children}

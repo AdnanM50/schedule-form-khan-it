@@ -14,15 +14,15 @@ interface StepIndicatorProps {
 
 export function StepIndicator({ steps, currentStep, showThankYou }: StepIndicatorProps) {
   return (
-    <div className="w-full">
+    <div className="w-full px-2 sm:px-0">
       <div className="flex items-center justify-between max-w-2xl mx-auto">
         {steps.map((step, index) => (
-          <div key={step.number} className="flex items-center flex-1">
+          <div key={step.number} className="flex items-center flex-1 min-w-0">
             {/* Step Circle */}
-            <div className="flex flex-col items-center flex-shrink-0">
+            <div className="flex flex-col items-center flex-1 min-w-0">
               <div
                 className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
+                  "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold transition-colors",
                   currentStep > step.number || (currentStep === step.number && showThankYou)
                     ? "bg-[#FF8C42] text-white"
                     : currentStep === step.number
@@ -30,11 +30,11 @@ export function StepIndicator({ steps, currentStep, showThankYou }: StepIndicato
                       : "bg-gray-200 text-gray-500",
                 )}
               >
-                {currentStep > step.number || (currentStep === step.number && showThankYou) ? <Check className="w-5 h-5" /> : step.number}
+                {currentStep > step.number || (currentStep === step.number && showThankYou) ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : step.number}
               </div>
               <span
                 className={cn(
-                  "mt-2 text-xs sm:text-sm font-medium text-center whitespace-nowrap",
+                  "mt-1 sm:mt-2 text-[10px] sm:text-xs font-medium text-center leading-tight",
                   currentStep >= step.number ? "text-foreground" : "text-muted-foreground",
                 )}
               >
@@ -46,7 +46,7 @@ export function StepIndicator({ steps, currentStep, showThankYou }: StepIndicato
             {index < steps.length - 1 && (
               <div
                 className={cn(
-                  "h-0.5 flex-1 mx-2 sm:mx-4 transition-colors",
+                  "h-0.5 flex-1 mx-1 sm:mx-2 transition-colors",
                   currentStep > step.number ? "bg-[#FF8C42]" : "bg-gray-200",
                 )}
               />

@@ -156,6 +156,10 @@
     transition: background-color 300ms ease, color 300ms ease, background-image 300ms ease;
   }
 } 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+.inter-roboto {
+  font-family: 'Roboto';
+}
 .glass {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);

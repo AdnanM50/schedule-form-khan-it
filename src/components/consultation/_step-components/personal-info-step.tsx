@@ -102,10 +102,10 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
         {/* Continue Button */}
         <Button
           type="submit"
-          className="w-full bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white h-12 text-base font-medium"
+          className="w-full bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white h-10 sm:h-12 text-sm sm:text-base font-medium"
         >
           Continue to Next Step
-          <ArrowRight className="ml-2 h-5 w-5" />
+          <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
         </Button>
       </form>
     </div>

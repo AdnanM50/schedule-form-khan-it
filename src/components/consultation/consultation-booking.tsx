@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { StepIndicator } from "./step-indicator"
 import { PersonalInfoStep } from "./_step-components/personal-info-step"
 import { BusinessInfoStep } from "./_step-components/business-info-step"
@@ -8,7 +8,7 @@ import { ServiceNeedsStep } from "./_step-components/service-needs-step"
 import { ScheduleMeetingStep } from "./_step-components/schedule-meeting-step"
 import { ThankYouScreen } from "./thank-you-modal"
 import Image from "next/image"
-import { sendContactEmail, formatFormDataToMessage } from "@/lib/api"
+import { sendContactEmail, formatFormDataToMessage, sendPartialFormData, formatPartialFormDataToMessage } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 
 export interface FormData {
@@ -67,6 +67,29 @@ export default function ConsultationBooking() {
     setFormData((prev) => ({ ...prev, ...data }))
   }
 
+  const sendPartialSubmission = async (step: number) => {
+    // Only send partial submission if we have at least name and email
+    if (!formData.fullName || !formData.email) {
+      return
+    }
+
+    try {
+      const message = formatPartialFormDataToMessage(formData, step)
+      
+      await sendPartialFormData({
+        email: formData.email,
+        name: formData.fullName,
+        service: "SEO",
+        budget: "500 USD",
+        currentStep: step.toString(),
+        message: message
+      })
+    } catch (error) {
+      // Silently fail for partial submissions to not interrupt user experience
+      console.log('Partial submission failed:', error)
+    }
+  }
+
   const handleNext = () => {
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1)
@@ -78,6 +101,31 @@ export default function ConsultationBooking() {
       setCurrentStep(currentStep - 1)
     }
   }
+
+  // Track page unload to send partial submission (only when user abandons form)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Only send partial submission if user hasn't completed all steps
+      if (formData.fullName && formData.email && currentStep < 4) {
+        sendPartialSubmission(currentStep)
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      // Only send partial submission if user switches tabs and hasn't completed all steps
+      if (document.hidden && formData.fullName && formData.email && currentStep < 4) {
+        sendPartialSubmission(currentStep)
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [currentStep, formData.fullName, formData.email])
 
   const handleConfirmBooking = async () => {
     try {
@@ -120,32 +168,34 @@ export default function ConsultationBooking() {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-4 sm:py-8 px-2 sm:px-4 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4 sm:mb-8">
           <Image
             width={150}
             height={150}
             src="/logo.png"
             alt="MD Faruk Khan Logo"
-            className="h-12 w-auto"
+            className="h-8 sm:h-12 w-auto"
           />
         </div>
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Schedule Your Free Consultation</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
+        <div className="text-center mb-4 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2 px-2">Schedule Your Free Consultation</h1>
+          <p className="text-xs sm:text-sm lg:text-base text-muted-foreground px-2">
             Let's discuss how we can grow your business together
           </p>
         </div>
 
         {/* Step Indicator */}
-        <StepIndicator steps={steps} currentStep={currentStep} showThankYou={showThankYou} />
+        <div className="mb-4 sm:mb-6">
+          <StepIndicator steps={steps} currentStep={currentStep} showThankYou={showThankYou} />
+        </div>
 
         {/* Step Content */}
-        <div className="mt-8 sm:mt-12">
+        <div className="mt-4 sm:mt-8 lg:mt-12">
           {currentStep === 1 && (
             <PersonalInfoStep formData={formData} updateFormData={updateFormData} onNext={handleNext} />
           )}

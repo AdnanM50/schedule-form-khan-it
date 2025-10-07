@@ -17,6 +17,7 @@ import {
 } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { getEventTypes, getAvailableTimes, type EventType } from "@/lib/api"
 
 interface ScheduleMeetingStepProps {
   formData: FormData
@@ -34,34 +35,13 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
   const [slotsData, setSlotsData] = useState<Record<string, Array<{ start: string; end: string }>> | null>(null)
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slotsError, setSlotsError] = useState<string | null>(null)
-  const [slotsInfo, setSlotsInfo] = useState<string | null>(null)
-
-  // Optional fallback sample slots (useful if API is unreachable locally)
-  const FALLBACK_SLOTS: Record<string, Array<{ start: string; end: string }>> = {
-    "2025-10-10": [
-      { start: "2025-10-10T09:00:00.000+06:00", end: "2025-10-10T09:30:00.000+06:00" },
-      { start: "2025-10-10T09:30:00.000+06:00", end: "2025-10-10T10:00:00.000+06:00" },
-      { start: "2025-10-10T10:00:00.000+06:00", end: "2025-10-10T10:30:00.000+06:00" },
-    ],
-    "2025-10-11": [
-      { start: "2025-10-11T09:00:00.000+06:00", end: "2025-10-11T09:30:00.000+06:00" },
-      { start: "2025-10-11T09:30:00.000+06:00", end: "2025-10-11T10:00:00.000+06:00" },
-      { start: "2025-10-11T10:00:00.000+06:00", end: "2025-10-11T10:30:00.000+06:00" },
-      { start: "2025-10-11T10:30:00.000+06:00", end: "2025-10-11T11:00:00.000+06:00" },
-      { start: "2025-10-11T11:00:00.000+06:00", end: "2025-10-11T11:30:00.000+06:00" },
-      { start: "2025-10-11T11:30:00.000+06:00", end: "2025-10-11T12:00:00.000+06:00" },
-      { start: "2025-10-11T12:00:00.000+06:00", end: "2025-10-11T12:30:00.000+06:00" },
-      { start: "2025-10-11T12:30:00.000+06:00", end: "2025-10-11T13:00:00.000+06:00" },
-      { start: "2025-10-11T13:00:00.000+06:00", end: "2025-10-11T13:30:00.000+06:00" },
-      { start: "2025-10-11T13:30:00.000+06:00", end: "2025-10-11T14:00:00.000+06:00" },
-      { start: "2025-10-11T14:00:00.000+06:00", end: "2025-10-11T14:30:00.000+06:00" },
-      { start: "2025-10-11T14:30:00.000+06:00", end: "2025-10-11T15:00:00.000+06:00" },
-      { start: "2025-10-11T15:00:00.000+06:00", end: "2025-10-11T15:30:00.000+06:00" },
-      { start: "2025-10-11T15:30:00.000+06:00", end: "2025-10-11T16:00:00.000+06:00" },
-      { start: "2025-10-11T16:00:00.000+06:00", end: "2025-10-11T16:30:00.000+06:00" },
-      { start: "2025-10-11T16:30:00.000+06:00", end: "2025-10-11T17:00:00.000+06:00" },
-    ],
-  }
+  
+  // Event types state
+  const [eventTypes, setEventTypes] = useState<EventType[]>([])
+  const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null)
+  const [loadingEventTypes, setLoadingEventTypes] = useState(false)
+  const [eventTypesError, setEventTypesError] = useState<string | null>(null)
+  const [availableTimezones, setAvailableTimezones] = useState<string[]>([])
 
   // helper: format ISO time string into user's selected timezone and format
   const formatSlotTime = (iso: string) => {
@@ -93,43 +73,105 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
   const timeSlots12h = ["09:00 AM", "09:30 AM", "10:00 AM"]
   const timeSlots24h = ["09:00", "09:30", "10:00"]
 
-  // Fetch function refactored so we can call it on Retry
-  const fetchSlotsOnce = async (retries = 1) => {
+  // Fallback slots in case API fails
+  const FALLBACK_SLOTS: Record<string, Array<{ start: string; end: string }>> = {
+    "2025-10-11": [
+      { start: "2025-10-11T09:00:00.000+06:00", end: "2025-10-11T09:30:00.000+06:00" },
+      { start: "2025-10-11T09:30:00.000+06:00", end: "2025-10-11T10:00:00.000+06:00" },
+      { start: "2025-10-11T10:00:00.000+06:00", end: "2025-10-11T10:30:00.000+06:00" },
+    ],
+    "2025-10-12": [
+      { start: "2025-10-12T09:00:00.000+06:00", end: "2025-10-12T09:30:00.000+06:00" },
+      { start: "2025-10-12T09:30:00.000+06:00", end: "2025-10-12T10:00:00.000+06:00" },
+    ],
+  }
+
+  // Fetch event types from API
+  const fetchEventTypes = async () => {
+    setLoadingEventTypes(true)
+    setEventTypesError(null)
+    
+    try {
+      console.log('🔄 Fetching event types from API...')
+      const data = await getEventTypes()
+      const allEventTypes = data.eventTypes.data.eventTypeGroups.flatMap(group => group.eventTypes)
+      console.log('✅ Event Types Success:', allEventTypes)
+      setEventTypes(allEventTypes)
+      
+      // Extract unique timezones from event types
+      const timezones = [...new Set(allEventTypes.map(eventType => eventType.owner.timeZone))]
+      console.log('✅ Available Timezones from API:', timezones)
+      setAvailableTimezones(timezones)
+      
+      // Set default timezone from first event type
+      if (timezones.length > 0) {
+        setTimezone(timezones[0])
+      }
+    } catch (error) {
+      console.error('❌ Event Types API Failed:', error)
+      setEventTypesError('Failed to load event types.')
+    } finally {
+      setLoadingEventTypes(false)
+    }
+  }
+
+  // Fetch available slots from API
+  const fetchAvailableSlots = async (eventType: EventType, timezone: string) => {
     setLoadingSlots(true)
     setSlotsError(null)
-    setSlotsInfo(null)
+    
     try {
-      const res = await fetch("https://contact-form.up.railway.app/api/getAvailableTimes")
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const json = await res.json()
-      const data = json?.slots?.data || {}
-      setSlotsData(data)
-      setSlotsError(null)
-    } catch (err) {
-      console.error("Failed to fetch slots", err)
-      if (retries > 0) {
-        setTimeout(() => void fetchSlotsOnce(retries - 1), 800)
-        return
+      console.log('🔄 Fetching available slots from API...')
+      
+      // Calculate date range (next 7 days)
+      const startDate = new Date()
+      const endDate = new Date()
+      endDate.setDate(startDate.getDate() + 7)
+      
+      const params = {
+        eventTypeSlug: eventType.slug,
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        timezone: timezone
       }
-      // final failure: load sample slots so UI still works and inform the user
+      
+      const data = await getAvailableTimes(params)
+      console.log('✅ API Success - Setting real data:', data.slots.data)
+      setSlotsData(data.slots.data)
+    } catch (error) {
+      console.error('❌ API Failed - Using fallback data:', error)
+      setSlotsError('Real-time availability temporarily unavailable. Showing sample times.')
+      // Use fallback slots so the component still works
+      console.log('🔄 Setting fallback slots:', FALLBACK_SLOTS)
       setSlotsData(FALLBACK_SLOTS)
-      setSlotsInfo("Using sample slots because the API could not be reached.")
-      setSlotsError(null)
     } finally {
       setLoadingSlots(false)
     }
   }
 
-  // fetch available slots once on mount (server returns several days)
+  // Fetch event types on component mount
   useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      if (!cancelled) await fetchSlotsOnce(1)
-    })()
-    return () => {
-      cancelled = true
-    }
+    fetchEventTypes()
   }, [])
+
+  // Handle event type selection
+  const handleEventTypeChange = (eventTypeId: string) => {
+    const eventType = eventTypes.find(et => et.id.toString() === eventTypeId)
+    if (eventType) {
+      setSelectedEventType(eventType)
+      setTimezone(eventType.owner.timeZone)
+      // Fetch available slots for the selected event type
+      fetchAvailableSlots(eventType, eventType.owner.timeZone)
+    }
+  }
+
+  // Handle timezone change
+  const handleTimezoneChange = (newTimezone: string) => {
+    setTimezone(newTimezone)
+    if (selectedEventType) {
+      fetchAvailableSlots(selectedEventType, newTimezone)
+    }
+  }
 
   // prepare a Set of available date keys to quickly check calendar days
   const availableDateKeys = useMemo(() => {
@@ -146,7 +188,10 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
 
   // prepare display items: label (start - end) and unique key (start_iso)
   const displaySlots: Array<{ key: string; label: string }> = availableForDate.length
-    ? availableForDate.map((s) => ({ key: s.start, label: `${formatSlotTime(s.start)} - ${formatSlotTime(s.end)}` }))
+    ? availableForDate.map((s) => ({ 
+        key: s.start, 
+        label: `${formatSlotTime(s.start)} - ${formatSlotTime(s.end)}` 
+      }))
     : []
 
   const handleDateSelect = (date: Date) => {
@@ -174,22 +219,24 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
   return (
     <>
       <div className="max-w-5xl mx-auto bg-white rounded-xl border border-gray-200 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-[280px_1fr_230px]">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_230px]">
           {/* --- Left Column: Profile + Meeting Details --- */}
-          <div className="border-r border-gray-200 p-6 flex flex-col gap-5">
+          <div className="border-r-0 lg:border-r border-gray-200 p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
             {/* Profile */}
             <div className="flex items-center gap-3">
               <img
-                src="/avatar.png"
+                src="/ceo.png"
                 alt="profile"
-                className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                className="w-10 h-10 rounded-full object-cover  border-gray-300"
               />
               <p className="text-sm font-medium text-gray-900">Md Faruk Khan</p>
             </div>
 
             {/* Meeting Info */}
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">SEO Strategy Call</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {selectedEventType ? selectedEventType.title : "SEO Strategy Call"}
+              </h2>
               <p className="text-sm text-gray-600 mt-2 leading-relaxed">
                 Book your strategy call today to explore how SEO and AI-driven search optimization can accelerate your
                 business growth.
@@ -199,9 +246,25 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
             {/* Meeting Details */}
             <div className="space-y-3 mt-2">
               <div className="flex items-center gap-3 text-sm text-gray-700">
-                
                 <Clock className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
-                <span className="text-[#0C1115]">30m</span>
+                {loadingEventTypes ? (
+                  <span className="text-[#0C1115]">Loading...</span>
+                ) : eventTypesError ? (
+                  <span className="text-red-500">Error loading</span>
+                ) : (
+                  <Select value={selectedEventType?.id.toString() || ""} onValueChange={handleEventTypeChange}>
+                    <SelectTrigger className="h-8 border-0 p-0 text-sm text-[#0C1115] shadow-none hover:text-gray-900 focus:ring-0 w-auto">
+                      <SelectValue placeholder="Select duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eventTypes.map((eventType) => (
+                        <SelectItem key={eventType.id} value={eventType.id.toString()}>
+                          {eventType.title} ({eventType.length} min)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-700">
                 <Video className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
@@ -209,16 +272,24 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <Globe className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
-                <Select value={timezone} onValueChange={setTimezone}>
-                  <SelectTrigger className="h-8 border-0 p-0 text-sm text-[#0C1115] shadow-none hover:text-gray-900 focus:ring-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Asia/Dhaka">Asia/Dhaka</SelectItem>
-                    <SelectItem value="America/New_York">America/New York</SelectItem>
-                    <SelectItem value="Europe/London">Europe/London</SelectItem>
-                  </SelectContent>
-                </Select>
+                {loadingEventTypes ? (
+                  <span className="text-[#0C1115]">Loading...</span>
+                ) : eventTypesError ? (
+                  <span className="text-red-500">Error loading</span>
+                ) : (
+                  <Select value={timezone} onValueChange={handleTimezoneChange}>
+                    <SelectTrigger className="h-8 border-0 p-0 text-sm text-[#0C1115] shadow-none hover:text-gray-900 focus:ring-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTimezones.map((tz) => (
+                        <SelectItem key={tz} value={tz}>
+                          {tz}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
 
@@ -229,7 +300,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
           </div>
 
           {/* --- Middle Column: Calendar --- */}
-          <div className="p-6 border-r border-gray-200">
+          <div className="p-4 sm:p-6 border-r-0 lg:border-r border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">{format(currentMonth, "MMMM yyyy")}</h3>
               <div className="flex gap-1">
@@ -255,7 +326,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
             {/* Days header */}
             <div className="grid grid-cols-7 gap-1 mb-2">
               {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((day) => (
-                <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+                <div key={day} className="text-center text-[10px] sm:text-xs font-medium text-gray-500 py-1 sm:py-2">
                   {day}
                 </div>
               ))}
@@ -265,7 +336,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
             <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((day, index) => {
                 if (!day) {
-                  return <div key={`empty-${index}`} className="aspect-square" />
+                  return <div key={`empty-${index}`} className="aspect-square min-h-[32px] sm:min-h-[40px]" />
                 }
 
                 const isSelected = formData.selectedDate && isSameDay(day, formData.selectedDate)
@@ -279,7 +350,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
                     // only disable if calendar month day and slotsData loaded and day has no slots
                     disabled={!isCurrentMonth || (slotsData ? !dayHasSlots(day) : false)}
                     className={cn(
-                      "aspect-square flex items-center justify-center text-sm rounded-md transition-colors",
+                      "aspect-square min-h-[32px] sm:min-h-[40px] flex items-center justify-center text-xs sm:text-sm rounded-md transition-colors",
                       "hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent",
                       isSelected && "bg-[#FF8C42] text-white font-semibold",
                       !isSelected && isCurrentMonth && "text-gray-900",
@@ -294,7 +365,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
           </div>
 
           {/* --- Right Column: Time Slots --- */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <p className="text-sm font-semibold text-gray-900 mb-4">
               {formData.selectedDate ? format(formData.selectedDate, "EEEE, MMM d") : "Select a date"}
             </p>
@@ -323,19 +394,23 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
               </div>
             </div>
 
-            <div className="space-y-2 max-h-[300px] overflow-y-auto">
-              {loadingSlots && <div className="text-sm text-gray-500 p-2">Loading available times...</div>}
-              {!loadingSlots && slotsError && (
-                <div className="text-sm text-red-500 p-2">
-                  <div>{slotsError}</div>
-                  <div className="mt-2 flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => void fetchSlotsOnce(1)}>
-                      Retry
-                    </Button>
-                    <Button size="sm" onClick={() => { setSlotsData(FALLBACK_SLOTS); setSlotsError(null) }}>
-                      Load sample slots
-                    </Button>
+            <div className="space-y-2 max-h-[200px] sm:max-h-[300px] overflow-y-auto">
+              {loadingSlots && (
+                <div className="text-sm text-gray-500 p-2">Loading available time slots...</div>
+              )}
+              {slotsError && (
+                <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="font-medium">Note:</span>
                   </div>
+                  <div className="mt-1">{slotsError}</div>
+                  <button 
+                    onClick={() => selectedEventType && fetchAvailableSlots(selectedEventType, timezone)}
+                    className="mt-2 px-3 py-1 bg-orange-500 text-white rounded text-xs hover:bg-orange-600"
+                  >
+                    Retry
+                  </button>
                 </div>
               )}
               {!loadingSlots && !slotsError && formData.selectedDate && displaySlots.length === 0 && (
@@ -349,7 +424,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
                     onClick={() => handleTimeSelect(slot.label)}
                     disabled={!formData.selectedDate}
                     className={cn(
-                      "w-full px-4 py-2.5 text-sm font-medium rounded-md transition-colors text-left",
+                      "w-full px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-md transition-colors text-left",
                       "disabled:opacity-50 disabled:cursor-not-allowed",
                       formData.selectedTime === slot.label
                         ? "bg-[#FF8C42] text-white"
@@ -372,12 +447,12 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
         </div>
       )}
       
-      <div className="flex justify-end gap-3 pt-6 border-gray-200">
+      <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 sm:pt-6 border-gray-200">
           <Button
             type="button"
             variant="outline"
             onClick={onBack}
-            className="px-6 border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent"
+            className="px-4 sm:px-6 border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent text-sm sm:text-base"
             disabled={isSubmitting}
           >
             Cancel
@@ -385,7 +460,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
           <Button
             type="button"
             onClick={handleConfirm}
-            className="px-6 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white font-medium"
+            className="px-4 sm:px-6 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white font-medium text-sm sm:text-base"
             disabled={!formData.selectedDate || !formData.selectedTime || isSubmitting}
           >
             {isSubmitting ? "Submitting..." : "Confirm Booking"}
