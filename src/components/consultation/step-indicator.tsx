@@ -15,11 +15,11 @@ interface StepIndicatorProps {
 export function StepIndicator({ steps, currentStep, showThankYou }: StepIndicatorProps) {
   return (
     <div className="w-full px-2 sm:px-0">
-      <div className="flex items-center justify-between max-w-2xl mx-auto">
+      <div className="flex items-center justify-center max-w-2xl mx-auto">
         {steps.map((step, index) => (
-          <div key={step.number} className="flex items-center flex-1 min-w-0">
+          <div key={step.number} className="flex items-center">
             {/* Step Circle */}
-            <div className="flex flex-col items-center flex-1 min-w-0">
+            <div className="flex flex-col items-center mt-4">
               <div
                 className={cn(
                   "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold transition-colors",
@@ -30,7 +30,11 @@ export function StepIndicator({ steps, currentStep, showThankYou }: StepIndicato
                       : "bg-gray-200 text-gray-500",
                 )}
               >
-                {currentStep > step.number || (currentStep === step.number && showThankYou) ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : step.number}
+                {currentStep > step.number || (currentStep === step.number && showThankYou) ? (
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5" />
+                ) : (
+                  step.number
+                )}
               </div>
               <span
                 className={cn(
@@ -46,7 +50,7 @@ export function StepIndicator({ steps, currentStep, showThankYou }: StepIndicato
             {index < steps.length - 1 && (
               <div
                 className={cn(
-                  "h-0.5 flex-1 mx-1 sm:mx-2 transition-colors",
+                  "h-[2px] w-10 sm:w-16 mx-1 sm:mx-2 transition-colors",
                   currentStep > step.number ? "bg-[#FF8C42]" : "bg-gray-200",
                 )}
               />
@@ -57,3 +61,4 @@ export function StepIndicator({ steps, currentStep, showThankYou }: StepIndicato
     </div>
   )
 }
+

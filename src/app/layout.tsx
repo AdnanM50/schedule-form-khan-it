@@ -3,9 +3,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "Schedule Form K.IT"
+  title: "Schedule a Meeting with Md. Faruk Khan"
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{

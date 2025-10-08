@@ -23,7 +23,7 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
   }
 
   return (
-    <div className="max-w-[768px] mx-auto bg-white rounded-lg shadow-sm border border-border p-6 sm:p-8">
+    <div className="max-w-[768px] mx-auto bg-white rounded-lg  border border-border p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Company Name */}
         <div className="space-y-2">
