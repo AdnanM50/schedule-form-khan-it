@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import type { FormData } from "../consultation-booking"
-import { ChevronLeft, ChevronRight, Clock, Video, Globe, AlertCircle } from "lucide-react"
+import { ChevronLeft, ChevronRight, Clock, Video, Globe, AlertCircle, ChevronDown } from "lucide-react"
 import {
   format,
   addMonths,
@@ -18,7 +18,7 @@ import {
   startOfDay,
 } from "date-fns"
 import { cn } from "@/lib/utils"
-import { getAvailableTimes, createCalcomBooking, sendContactEmail, formatFormDataToMessage } from "@/lib/api"
+import { getAvailableTimes, createCalcomBooking, sendContactEmail, formatFormDataToMessage, getEventTypes, type EventType } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 
 interface ScheduleMeetingStepProps {
@@ -39,8 +39,14 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
   const [isBookingSubmitting, setIsBookingSubmitting] = useState(false)
   const { toast } = useToast()
   
-  // Fixed meeting duration and timezone
-  const selectedDuration = "30"
+  // Event types state
+  const [eventTypes, setEventTypes] = useState<EventType[]>([])
+  const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null)
+  const [loadingEventTypes, setLoadingEventTypes] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  // Fixed timezone
   const timezone = "Asia/Dhaka"
 
   // Helper function to format time from API response
@@ -68,8 +74,48 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
     }
   }
 
+  // Fetch event types from API
+  const fetchEventTypes = async () => {
+    setLoadingEventTypes(true)
+    
+    try {
+      console.log('🔄 Fetching event types from API...')
+      const data = await getEventTypes()
+      console.log('✅ Event Types API Success:', data)
+      
+      // Extract event types from the response
+      const allEventTypes: EventType[] = []
+      data.eventTypes.data.eventTypeGroups.forEach(group => {
+        if (group.eventTypes) {
+          allEventTypes.push(...group.eventTypes)
+        }
+      })
+      
+      setEventTypes(allEventTypes)
+      
+      // Set default selection to first event type if none selected
+      if (allEventTypes.length > 0 && !selectedEventType) {
+        setSelectedEventType(allEventTypes[0])
+      }
+    } catch (error) {
+      console.error('❌ Event Types API Failed:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load meeting types. Please refresh the page.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingEventTypes(false)
+    }
+  }
+
   // Fetch available slots from API
   const fetchAvailableSlots = async (startDate: Date, endDate: Date) => {
+    if (!selectedEventType) {
+      console.log('⚠️ No event type selected, skipping slot fetch')
+      return
+    }
+    
     setLoadingSlots(true)
     setSlotsError(null)
     
@@ -77,7 +123,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
       console.log('🔄 Fetching available slots from API...')
       
       const params = {
-        eventTypeSlug: `${selectedDuration}min`,
+        eventTypeSlug: selectedEventType.slug,
         startDate: formatDateKey(startDate),
         endDate: formatDateKey(endDate),
         timezone: timezone
@@ -96,12 +142,33 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
     }
   }
 
-  // Fetch slots for current month on component mount
+  // Fetch event types on component mount
   useEffect(() => {
-    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
-    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0)
-    fetchAvailableSlots(startOfMonth, endOfMonth)
-  }, [currentMonth])
+    fetchEventTypes()
+  }, [])
+
+  // Fetch slots for current month when event type or month changes
+  useEffect(() => {
+    if (selectedEventType) {
+      const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+      const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0)
+      fetchAvailableSlots(startOfMonth, endOfMonth)
+    }
+  }, [currentMonth, selectedEventType])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const handleDateSelect = (date: Date) => {
     updateFormData({ selectedDate: date })
@@ -113,11 +180,19 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
     updateFormData({ selectedTime: time })
   }
 
+  const handleEventTypeSelect = (eventType: EventType) => {
+    setSelectedEventType(eventType)
+    setIsDropdownOpen(false)
+    // Clear previous selections when event type changes
+    updateFormData({ selectedDate: null, selectedTime: "" })
+    setSlotsData(null)
+  }
+
   const handleConfirm = async () => {
-    if (!formData.selectedDate || !formData.selectedTime) {
+    if (!formData.selectedDate || !formData.selectedTime || !selectedEventType) {
       toast({
         title: "Selection Required",
-        description: "Please select both a date and time",
+        description: "Please select a meeting type, date, and time",
         variant: "destructive",
       })
       return
@@ -142,7 +217,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
         email: formData.email,
         timeZone: timezone,
         startTime: startTimeISO,
-        eventTypeId: 3583077 // Fixed event type ID for 30min meeting
+        eventTypeId: selectedEventType.id // Use selected event type ID
       }
 
       console.log('🔄 Submitting booking data:', bookingData)
@@ -215,7 +290,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
             {/* Meeting Info */}
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
-                {selectedDuration} Min Meeting
+                {selectedEventType ? selectedEventType.title : "Select Meeting Type"}
               </h2>
               <p className="text-sm text-gray-600 mt-2 leading-relaxed">
                 Book your strategy call today to explore how SEO and AI-driven search optimization can accelerate your
@@ -227,7 +302,40 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
             <div className="space-y-3 mt-2">
               <div className="flex items-center gap-3 text-sm text-gray-700">
                 <Clock className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
-                <span className="text-[#0C1115]">30 Min Meeting (30 min)</span>
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 text-[#0C1115] hover:text-[#F47E20] transition-colors"
+                    disabled={loadingEventTypes}
+                  >
+                    <span>
+                      {selectedEventType 
+                        ? `${selectedEventType.title} (${selectedEventType.length} min)`
+                        : loadingEventTypes 
+                          ? "Loading meeting types..."
+                          : "Select meeting type"
+                      }
+                    </span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                  
+                  {isDropdownOpen && eventTypes.length > 0 && (
+                    <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                      {eventTypes.map((eventType) => (
+                        <button
+                          key={eventType.id}
+                          type="button"
+                          onClick={() => handleEventTypeSelect(eventType)}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className="font-medium text-gray-900">{eventType.title}</div>
+                          <div className="text-xs text-gray-500">{eventType.length} minutes</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-700">
                 <Video className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
@@ -417,7 +525,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
             type="button"
             onClick={handleConfirm}
             className="px-4 sm:px-6 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white font-medium text-sm sm:text-base"
-            disabled={!formData.selectedDate || !formData.selectedTime || isBookingSubmitting}
+            disabled={!selectedEventType || !formData.selectedDate || !formData.selectedTime || isBookingSubmitting}
           >
             {isBookingSubmitting ? (
               <div className="flex items-center gap-2">
