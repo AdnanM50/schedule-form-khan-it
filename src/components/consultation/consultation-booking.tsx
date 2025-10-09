@@ -128,9 +128,17 @@ export default function ConsultationBooking() {
   }, [currentStep, formData.fullName, formData.email])
 
   const handleConfirmBooking = async () => {
+    // Prevent double submission
+    if (isSubmitting) {
+      console.log('⚠️ Submission already in progress, skipping duplicate call')
+      return
+    }
+
     try {
       setIsSubmitting(true)
       setSubmitError(null)
+      
+      console.log('🔄 Starting handleConfirmBooking - sending contact email')
       
       // Format the form data into the message string as shown in the API example
       const message = formatFormDataToMessage(formData)
@@ -141,6 +149,8 @@ export default function ConsultationBooking() {
         email: formData.email,
         message: message
       })
+      
+      console.log('✅ Contact email sent successfully')
       
       // Show success toast
       toast({

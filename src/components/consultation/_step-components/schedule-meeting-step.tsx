@@ -18,7 +18,7 @@ import {
   startOfDay,
 } from "date-fns"
 import { cn } from "@/lib/utils"
-import { getAvailableTimes, createCalcomBooking, sendContactEmail, formatFormDataToMessage, getEventTypes, type EventType } from "@/lib/api"
+import { getAvailableTimes, createCalcomBooking, getEventTypes, type EventType } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 
 interface ScheduleMeetingStepProps {
@@ -198,6 +198,12 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
       return
     }
 
+    // Prevent double submission
+    if (isBookingSubmitting) {
+      console.log('⚠️ Booking submission already in progress, skipping duplicate call')
+      return
+    }
+
     setIsBookingSubmitting(true)
 
     try {
@@ -222,19 +228,11 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
 
       console.log('🔄 Submitting booking data:', bookingData)
       await createCalcomBooking(bookingData)
+      console.log('✅ Cal.com booking created successfully')
 
-      // API 2: Send contact email
-      const message = formatFormDataToMessage(formData)
-      const emailData = {
-        email: formData.email,
-        name: formData.fullName,
-        message: message
-      }
-
-      console.log('🔄 Sending contact email:', emailData)
-      await sendContactEmail(emailData)
-
-      // Both APIs successful, proceed with confirmation
+      // Booking successful, proceed with confirmation
+      // Note: sendContactEmail is handled by the parent component
+      console.log('🔄 Calling onConfirm to trigger parent handleConfirmBooking')
       onConfirm()
       
     } catch (error) {
