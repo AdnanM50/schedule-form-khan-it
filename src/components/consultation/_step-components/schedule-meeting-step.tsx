@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils"
 import { getAvailableTimes, createCalcomBooking, getEventTypes, type EventType } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
+import { COMMON_TIMEZONES, formatTimezoneForAPI, formatStartTimeWithOffset, getTimezoneOffsetFromList } from "@/lib/timezone-utils"
 
 interface ScheduleMeetingStepProps {
   formData: FormData
@@ -31,7 +32,7 @@ interface ScheduleMeetingStepProps {
 }
 
 export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBack, isSubmitting = false, submitError }: ScheduleMeetingStepProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date()) // Current month
+  const [currentMonth, setCurrentMonth] = useState(new Date()) 
   const [timeFormat, setTimeFormat] = useState("12h")
   const [slotsData, setSlotsData] = useState<Record<string, Array<{ start: string; end: string }>> | null>(null)
   const [loadingSlots, setLoadingSlots] = useState(false)
@@ -46,8 +47,9 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   
-  // Fixed timezone
-  const timezone = "Asia/Dhaka"
+  // Selected timezone from dropdown
+  const [timezone, setTimezone] = useState<string>("Asia/Dhaka")
+  const [isTimezoneDropdownOpen, setIsTimezoneDropdownOpen] = useState(false)
 
   // Helper function to format time from API response
   const formatSlotTime = (iso: string) => {
@@ -116,6 +118,11 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
       return
     }
     
+    if (!timezone) {
+      console.log('⚠️ Timezone not detected yet, skipping slot fetch')
+      return
+    }
+    
     setLoadingSlots(true)
     setSlotsError(null)
     
@@ -126,7 +133,7 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
         eventTypeSlug: selectedEventType.slug,
         startDate: formatDateKey(startDate),
         endDate: formatDateKey(endDate),
-        timezone: timezone
+        timezone: formatTimezoneForAPI(timezone)
       }
       
       console.log('📅 API Params:', params)
@@ -147,20 +154,25 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
     fetchEventTypes()
   }, [])
 
-  // Fetch slots for current month when event type or month changes
+  // Fetch slots for current month when event type, month, or timezone changes
   useEffect(() => {
-    if (selectedEventType) {
+    if (selectedEventType && timezone) {
       const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
       const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0)
       fetchAvailableSlots(startOfMonth, endOfMonth)
     }
-  }, [currentMonth, selectedEventType])
+  }, [currentMonth, selectedEventType, timezone])
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false)
+      }
+      // Close timezone dropdown when clicking outside
+      const timezoneDropdown = document.querySelector('[data-timezone-dropdown]')
+      if (timezoneDropdown && !timezoneDropdown.contains(event.target as Node)) {
+        setIsTimezoneDropdownOpen(false)
       }
     }
 
@@ -198,6 +210,15 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
       return
     }
 
+    if (!timezone) {
+      toast({
+        title: "Timezone Detection Required",
+        description: "Please wait for timezone detection to complete",
+        variant: "destructive",
+      })
+      return
+    }
+
     // Prevent double submission
     if (isBookingSubmitting) {
       console.log('⚠️ Booking submission already in progress, skipping duplicate call')
@@ -211,24 +232,21 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
       const timeParts = formData.selectedTime.split(' - ')
       const startTimeStr = timeParts[0]
       
-      // Convert to ISO format for the API
-      const selectedDateStr = format(formData.selectedDate, 'yyyy-MM-dd')
-      const startTimeISO = `${selectedDateStr}T${startTimeStr.includes('AM') || startTimeStr.includes('PM') 
-        ? convertTo24Hour(startTimeStr) 
-        : startTimeStr}:00.000+06:00`
+      // Format startTime with timezone offset (e.g., "2025-10-15T10:45:00.000+06:00")
+      const startTimeISO = formatStartTimeWithOffset(formData.selectedDate, startTimeStr, timezone)
 
-      // API 1: Create Cal.com booking
+      // API 1: Create Cal.com booking with auto-detected timezone
       const bookingData = {
         name: formData.fullName,
         email: formData.email,
-        timeZone: timezone,
-        startTime: startTimeISO,
+        timeZone: formatTimezoneForAPI(timezone), // Auto-detected timezone
+        startTime: startTimeISO, // Formatted with timezone offset
         eventTypeId: selectedEventType.id // Use selected event type ID
       }
 
-      console.log('🔄 Submitting booking data:', bookingData)
+      console.log('🔄 Submitting booking data with auto-detected timezone:', bookingData)
       await createCalcomBooking(bookingData)
-      console.log('✅ Cal.com booking created successfully')
+      console.log('✅ Cal.com booking created successfully with timezone:', timezone)
 
       // Booking successful, proceed with confirmation
       // Note: sendContactEmail is handled by the parent component
@@ -247,21 +265,6 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
     }
   }
 
-  // Helper function to convert 12h to 24h format
-  const convertTo24Hour = (time12h: string) => {
-    const [time, modifier] = time12h.split(' ')
-    let [hours, minutes] = time.split(':')
-    
-    if (hours === '12') {
-      hours = '00'
-    }
-    
-    if (modifier === 'PM') {
-      hours = (parseInt(hours, 10) + 12).toString()
-    }
-    
-    return `${hours.padStart(2, '0')}:${minutes}`
-  }
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(currentMonth)
@@ -341,7 +344,34 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <Globe className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
-                <span className="text-[#0C1115]">Asia/Dhaka</span>
+                <div className="relative" data-timezone-dropdown>
+                  <button
+                    type="button"
+                    onClick={() => setIsTimezoneDropdownOpen(!isTimezoneDropdownOpen)}
+                    className="flex items-center gap-2 text-[#0C1115] hover:text-[#F47E20] transition-colors"
+                  >
+                    <span>{COMMON_TIMEZONES.find(tz => tz.value === timezone)?.label || timezone}</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                  
+                  {isTimezoneDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-20 max-h-48 overflow-y-auto">
+                      {COMMON_TIMEZONES.map((tz) => (
+                        <button
+                          key={tz.value}
+                          type="button"
+                          onClick={() => {
+                            setTimezone(tz.value)
+                            setIsTimezoneDropdownOpen(false)
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className="font-medium text-gray-900">{tz.label}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
