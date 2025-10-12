@@ -300,84 +300,117 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
             </div>
 
             {/* Meeting Details */}
-            <div className="space-y-3 mt-2">
-              <div className="flex items-center gap-3 text-sm text-gray-700">
-                <Clock className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    type="button"
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 text-[#0C1115] hover:text-[#F47E20] transition-colors"
-                    disabled={loadingEventTypes}
-                  >
-                    <span>
-                      {selectedEventType 
-                        ? `${selectedEventType.title} (${selectedEventType.length} min)`
-                        : loadingEventTypes 
-                          ? "Loading meeting types..."
-                          : "Select meeting type"
-                      }
-                    </span>
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-                  
-                  {isDropdownOpen && eventTypes.length > 0 && (
-                    <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
-                      {eventTypes.map((eventType) => (
-                        <button
-                          key={eventType.id}
-                          type="button"
-                          onClick={() => handleEventTypeSelect(eventType)}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                        >
-                          <div className="font-medium text-gray-900">{eventType.title}</div>
-                          <div className="text-xs text-gray-500">{eventType.length} minutes</div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+            <div className="space-y-4 mt-4">
+              {/* Meeting Type */}
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 bg-orange-50 border border-orange-200 rounded-lg flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-[#F47E20]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="flex items-center justify-between w-full text-left hover:text-[#F47E20] transition-colors min-w-0"
+                      disabled={loadingEventTypes}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {selectedEventType 
+                            ? selectedEventType.title
+                            : loadingEventTypes 
+                              ? "Loading meeting types..."
+                              : "Select meeting type"
+                          }
+                        </p>
+                        {selectedEventType && (
+                          <p className="text-xs text-gray-500">{selectedEventType.length} minutes</p>
+                        )}
+                      </div>
+                      <ChevronDown className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                    </button>
+                    
+                    {isDropdownOpen && eventTypes.length > 0 && (
+                      <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                        {eventTypes.map((eventType) => (
+                          <button
+                            key={eventType.id}
+                            type="button"
+                            onClick={() => handleEventTypeSelect(eventType)}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-100 last:border-b-0 first:rounded-t-lg last:rounded-b-lg"
+                          >
+                            <div className="font-medium text-gray-900 truncate">{eventType.title}</div>
+                            <div className="text-xs text-gray-500">{eventType.length} minutes</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 text-sm text-gray-700">
-                <Video className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
-                <span className="text-[#0C1115]">Google Meet</span>
+
+              {/* Meeting Platform */}
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 bg-orange-50 border border-orange-200 rounded-lg flex items-center justify-center">
+                  <Video className="w-5 h-5 text-[#F47E20]" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">Google Meet</p>
+                  <p className="text-xs text-gray-500">Video call link will be sent</p>
+                </div>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Globe className="w-[35px] h-[35px] text-[#F47E20] border rounded-[8px] p-[8px] border-gray-300 " />
-                <div className="relative" data-timezone-dropdown>
-                  <button
-                    type="button"
-                    onClick={() => setIsTimezoneDropdownOpen(!isTimezoneDropdownOpen)}
-                    className="flex items-center gap-2 text-[#0C1115] hover:text-[#F47E20] transition-colors"
-                  >
-                    <span>{COMMON_TIMEZONES.find(tz => tz.value === timezone)?.label || timezone}</span>
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-                  
-                  {isTimezoneDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-20 max-h-48 overflow-y-auto">
-                      {COMMON_TIMEZONES.map((tz) => (
-                        <button
-                          key={tz.value}
-                          type="button"
-                          onClick={() => {
-                            setTimezone(tz.value)
-                            setIsTimezoneDropdownOpen(false)
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                        >
-                          <div className="font-medium text-gray-900">{tz.label}</div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+
+              {/* Timezone */}
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 bg-orange-50 border border-orange-200 rounded-lg flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-[#F47E20]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="relative" data-timezone-dropdown>
+                    <button
+                      type="button"
+                      onClick={() => setIsTimezoneDropdownOpen(!isTimezoneDropdownOpen)}
+                      className="flex items-center justify-between w-full text-left hover:text-[#F47E20] transition-colors min-w-0"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {COMMON_TIMEZONES.find(tz => tz.value === timezone)?.label || timezone}
+                        </p>
+                        <p className="text-xs text-gray-500">Your timezone</p>
+                      </div>
+                      <ChevronDown className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                    </button>
+                    
+                    {isTimezoneDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-full max-w-xs sm:max-w-sm bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto">
+                        {COMMON_TIMEZONES.map((tz) => (
+                          <button
+                            key={tz.value}
+                            type="button"
+                            onClick={() => {
+                              setTimezone(tz.value)
+                              setIsTimezoneDropdownOpen(false)
+                            }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 border-b border-gray-100 last:border-b-0 first:rounded-t-lg last:rounded-b-lg"
+                          >
+                            <div className="font-medium text-gray-900 truncate">{tz.label}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-yellow-50 border border-[#FDE68A] rounded-full p-2.5 flex items-center gap-2 mt-auto">
-              <AlertCircle className="w-4 h-4 text-yellow-600" />
-              <p className="text-xs text-yellow-800 font-medium">Requires confirmation</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-3 mt-6">
+              <div className="flex-shrink-0 w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-amber-800">Requires confirmation</p>
+                <p className="text-xs text-amber-700">You'll receive a confirmation email after booking</p>
+              </div>
             </div>
           </div>
 

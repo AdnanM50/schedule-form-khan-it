@@ -138,8 +138,14 @@ export const formatStartTimeWithOffset = (date: Date, time: string, timezone: st
       time24h = convertTo24Hour(time)
     }
     
-    // Format date as YYYY-MM-DD
-    const dateStr = date.toISOString().split('T')[0]
+    // Format date as YYYY-MM-DD using timezone-aware formatting
+    // This prevents date shifting when converting to UTC
+    const dateStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(date)
     
     // Get timezone offset from hardcoded list
     const offset = getTimezoneOffsetFromList(timezone)
@@ -148,8 +154,11 @@ export const formatStartTimeWithOffset = (date: Date, time: string, timezone: st
     return `${dateStr}T${time24h}:00.000${offset}`
   } catch (error) {
     console.error('❌ Failed to format startTime with offset:', error)
-    // Fallback format
-    const dateStr = date.toISOString().split('T')[0]
+    // Fallback format - use local date formatting to avoid timezone issues
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
     return `${dateStr}T${time}:00.000+00:00`
   }
 }
