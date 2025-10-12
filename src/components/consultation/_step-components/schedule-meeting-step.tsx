@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import type { FormData } from "../consultation-booking"
-import { ChevronLeft, ChevronRight, Clock, Video, Globe, AlertCircle, ChevronDown } from "lucide-react"
+import { ChevronLeft, ChevronRight, Clock, Video, Globe, AlertCircle, ChevronDown, CircleCheck } from "lucide-react"
 import {
   format,
   addMonths,
@@ -33,7 +33,7 @@ interface ScheduleMeetingStepProps {
 
 export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBack, isSubmitting = false, submitError }: ScheduleMeetingStepProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date()) 
-  const [timeFormat, setTimeFormat] = useState("12h")
+  const [timeFormat, setTimeFormat] = useState("24h")
   const [slotsData, setSlotsData] = useState<Record<string, Array<{ start: string; end: string }>> | null>(null)
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slotsError, setSlotsError] = useState<string | null>(null)
@@ -403,13 +403,13 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
               </div>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-3 mt-6">
+            <div className="bg-amber-50 border border-amber-200 rounded-full p-2 flex items-center gap-3 mt-6">
               <div className="flex-shrink-0 w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <CircleCheck className="w-4 h-4 text-amber-600" />
               </div>
               <div>
                 <p className="text-sm font-medium text-amber-800">Requires confirmation</p>
-                <p className="text-xs text-amber-700">You'll receive a confirmation email after booking</p>
+                {/* <p className="text-xs text-amber-700">You'll receive a confirmation email after booking</p> */}
               </div>
             </div>
           </div>
