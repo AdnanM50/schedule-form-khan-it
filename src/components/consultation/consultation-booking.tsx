@@ -47,6 +47,10 @@ export default function ConsultationBooking() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const { toast } = useToast()
+  // Track success so we don't send partial if both succeed
+  const [contactEmailSent, setContactEmailSent] = useState(false)
+  const [bookingCreated, setBookingCreated] = useState(false)
+  const [partialSent, setPartialSent] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
@@ -84,6 +88,7 @@ export default function ConsultationBooking() {
         currentStep: step.toString(),
         message: message
       })
+      setPartialSent(true)
     } catch (error) {
       // Silently fail for partial submissions to not interrupt user experience
       console.log('Partial submission failed:', error)
@@ -102,18 +107,27 @@ export default function ConsultationBooking() {
     }
   }
 
-  // Track page unload to send partial submission (only when user abandons form)
+  // Track page unload/visibility change to send partial submission
   useEffect(() => {
+    const shouldSendPartial = () => {
+      // Send partial only once, only if main submissions not both successful
+      if (partialSent) return false
+      const bothSucceeded = contactEmailSent && bookingCreated
+      if (bothSucceeded) return false
+      // Only if user hasn't completed all steps
+      if (!(formData.fullName && formData.email && currentStep < 4)) return false
+      return true
+    }
+
     const handleBeforeUnload = () => {
-      // Only send partial submission if user hasn't completed all steps
-      if (formData.fullName && formData.email && currentStep < 4) {
+      if (shouldSendPartial()) {
+        // Fire and forget; navigator.sendBeacon would be ideal but fetch is acceptable
         sendPartialSubmission(currentStep)
       }
     }
 
     const handleVisibilityChange = () => {
-      // Only send partial submission if user switches tabs and hasn't completed all steps
-      if (document.hidden && formData.fullName && formData.email && currentStep < 4) {
+      if (document.hidden && shouldSendPartial()) {
         sendPartialSubmission(currentStep)
       }
     }
@@ -125,7 +139,7 @@ export default function ConsultationBooking() {
       window.removeEventListener('beforeunload', handleBeforeUnload)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [currentStep, formData.fullName, formData.email])
+  }, [currentStep, formData.fullName, formData.email, contactEmailSent, bookingCreated, partialSent])
 
   const handleConfirmBooking = async () => {
     // Prevent double submission
@@ -151,6 +165,7 @@ export default function ConsultationBooking() {
       })
       
       console.log('✅ Contact email sent successfully')
+      setContactEmailSent(true)
       
       // Show success toast
       toast({
@@ -236,6 +251,7 @@ export default function ConsultationBooking() {
                 onBack={handleBack}
                 isSubmitting={isSubmitting}
                 submitError={submitError}
+                onBookingSuccess={() => setBookingCreated(true)}
               />
             )
           )}

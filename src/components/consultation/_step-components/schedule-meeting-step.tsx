@@ -29,9 +29,11 @@ interface ScheduleMeetingStepProps {
   onBack: () => void
   isSubmitting?: boolean
   submitError?: string | null
+  // Called after Cal.com booking succeeds so parent can track success
+  onBookingSuccess?: () => void
 }
 
-export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBack, isSubmitting = false, submitError }: ScheduleMeetingStepProps) {
+export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBack, isSubmitting = false, submitError, onBookingSuccess }: ScheduleMeetingStepProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date()) 
   const [timeFormat, setTimeFormat] = useState("24h")
   const [slotsData, setSlotsData] = useState<Record<string, Array<{ start: string; end: string }>> | null>(null)
@@ -247,6 +249,11 @@ export function ScheduleMeetingStep({ formData, updateFormData, onConfirm, onBac
       console.log('🔄 Submitting booking data with auto-detected timezone:', bookingData)
       await createCalcomBooking(bookingData)
       console.log('✅ Cal.com booking created successfully with timezone:', timezone)
+
+      // Notify parent that booking step succeeded
+      try {
+        onBookingSuccess && onBookingSuccess()
+      } catch {}
 
       // Booking successful, proceed with confirmation
       // Note: sendContactEmail is handled by the parent component
