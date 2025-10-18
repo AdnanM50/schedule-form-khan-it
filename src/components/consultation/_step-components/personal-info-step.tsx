@@ -1,15 +1,14 @@
 "use client"
 
-import type React from "react"
-
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { FormData } from "../consultation-booking"
 import { ArrowRight } from "lucide-react"
-import PhoneInput from 'react-phone-number-input'
-import 'react-phone-number-input/style.css'
+import PhoneInput from "react-phone-number-input"
+import "react-phone-number-input/style.css"
+import type { FormData } from "../consultation-booking"
 
 interface PersonalInfoStepProps {
   formData: FormData
@@ -18,13 +17,78 @@ interface PersonalInfoStepProps {
 }
 
 export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalInfoStepProps) {
+  const [error, setError] = useState("")
+
+  const BD_COUNTRY_CODE = "880" // Bangladesh calling code without '+'
+  const MAX_NATIONAL_DIGITS = 10
+
+  // Extract the "national" digits from any value (E.164 or raw)
+  const getNationalDigits = (value?: string) => {
+    if (!value) return ""
+    const digits = value.replace(/\D/g, "")
+    let national = digits
+
+    // If starts with BD code, drop it
+    if (digits.startsWith(BD_COUNTRY_CODE)) {
+      national = digits.slice(BD_COUNTRY_CODE.length)
+    }
+    // If national starts with 0 (local leading 0), drop it
+    if (national.startsWith("0")) national = national.slice(1)
+
+    return national
+  }
+
+  const buildE164FromNational = (national: string) => {
+    if (!national) return ""
+    // ensure max length
+    const trimmed = national.slice(0, MAX_NATIONAL_DIGITS)
+    return `+${BD_COUNTRY_CODE}${trimmed}`
+  }
+
+  // Called when react-phone-number-input emits a new value
+  const handlePhoneChange = (value: string | undefined) => {
+    const national = getNationalDigits(value)
+
+    // If the user attempted to enter more than allowed digits, show error
+    // and keep the stored value trimmed to the allowed length.
+    if (national.length > MAX_NATIONAL_DIGITS) {
+      const trimmed = national.slice(0, MAX_NATIONAL_DIGITS)
+      const e164Trimmed = buildE164FromNational(trimmed)
+      updateFormData({ phone: e164Trimmed })
+      setError("Enter valid 10 number")
+      return
+    }
+
+    // Normal path: update trimmed value and clear error
+    const e164 = buildE164FromNational(national)
+    updateFormData({ phone: e164 })
+    setError("")
+  }
+
+  // We enforce digit limits inside handlePhoneChange and keep the input controlled.
+  // Avoid forwarding handlers to the underlying input (prevents React console warnings).
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const national = getNationalDigits(formData.phone)
+
+    if (!national) {
+      setError("Phone number is required")
+      return
+    }
+    if (national.length !== MAX_NATIONAL_DIGITS) {
+      setError(`Phone number must be exactly ${MAX_NATIONAL_DIGITS} digits`)
+      return
+    }
+
+    setError("")
     onNext()
   }
 
+  const isPhoneInvalid = !!error
+
   return (
-    <div className="max-w-[768px] mx-auto bg-white rounded-lg  border border-border p-6 sm:p-8">
+    <div className="max-w-[768px] mx-auto bg-white rounded-lg border border-border p-6 sm:p-8">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Full Name */}
         <div className="space-y-2">
@@ -61,27 +125,34 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
         {/* Mobile/WhatsApp */}
         <div className="space-y-2">
           <Label htmlFor="phone" className="text-sm font-medium">
-            Mobile/WhatsApp
+            Mobile/WhatsApp <span className="text-red-500">*</span>
           </Label>
-          <PhoneInput
-            value={formData.phone}
-            onChange={(value) => updateFormData({ phone: value || "" })}
-            placeholder="Enter your phone number"
-            defaultCountry="BD"
-            className="phone-input-custom sm:!h-12 !h-9 w-full"
-            international
-            countryCallingCodeEditable={false}
-            displayInitialValueAsLocalNumber={false}
-          />
+
+          <div
+            className={`rounded-md border ${isPhoneInvalid ? "border-red-500" : "border-input"} focus-within:border-primary`}
+          >
+            <PhoneInput
+              value={formData.phone}
+              onChange={handlePhoneChange}
+              placeholder="Enter your phone number"
+              defaultCountry="BD"
+              className="phone-input-custom sm:!h-12 !h-9 w-full px-3 py-2 rounded-md"
+              international
+              countryCallingCodeEditable={false}
+              displayInitialValueAsLocalNumber={false}
+            />
+          </div>
+
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <p className="text-xs text-muted-foreground mt-1">Enter exactly {MAX_NATIONAL_DIGITS} digits (without country code).</p>
         </div>
 
         {/* Where did you hear about us? */}
-        <div className="space-y-2 w-full ">
+        <div className="space-y-2 w-full">
           <Label htmlFor="referralSource" className="text-sm font-medium">
             Where did you hear about us?
           </Label>
           <Select
-          // className="w-full"
             value={formData.referralSource}
             onValueChange={(value) => updateFormData({ referralSource: value })}
             required
@@ -89,7 +160,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
             <SelectTrigger id="referralSource" className="w-full h-12">
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
-            <SelectContent >
+            <SelectContent>
               <SelectItem value="google">Google Search</SelectItem>
               <SelectItem value="social">Social Media</SelectItem>
               <SelectItem value="referral">Referral</SelectItem>
