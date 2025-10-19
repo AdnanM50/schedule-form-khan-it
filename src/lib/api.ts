@@ -76,8 +76,7 @@ Company: ${formData.companyName}
 Website: ${formData.website || 'N/A'}
 Services: ${formData.goals.join(', ')}
 Google Ranking: ${formData.hasDoneSEO}
-GBP Verified: ${formData.hasDoneSEO}
-Budget: N/A
+
 Calendly Scheduled: ${formData.selectedDate && formData.selectedTime ? 'Yes' : 'No'}
 Additional Notes: ${formData.referralSource}
 Selected Date: ${formData.selectedDate ? formData.selectedDate.toLocaleDateString() : 'N/A'}
