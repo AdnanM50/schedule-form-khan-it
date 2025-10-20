@@ -7,6 +7,7 @@ const Page = () => {
   return (
     <main className="min-h-screen bg-background">
       <ConsultationBooking />
+      
     </main>
   )
 }
