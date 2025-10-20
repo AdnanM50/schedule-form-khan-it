@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 
 import type { FormData } from "../consultation-booking"
-import { ArrowRight, ArrowLeft } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
@@ -140,22 +140,13 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
           </RadioGroup>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onBack}
-            className="w-full sm:w-auto px-4 sm:px-6 h-10 sm:h-12 text-sm sm:text-base font-medium bg-transparent border-gray-300 text-gray-700 hover:bg-gray-50"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-            Back
-          </Button>
+        {/* Action Button: only show the continue/submit button for step 3 (no Back button) */}
+        <div className="flex justify-end">
           <Button
             type="submit"
-            className="w-full sm:w-auto px-4 sm:px-6 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white h-10 sm:h-12 text-sm sm:text-base font-medium"
+            className="px-4 sm:px-6 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white h-10 sm:h-12 text-sm sm:text-base font-medium"
           >
-            Continue to Next Step
+           submit
             <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>

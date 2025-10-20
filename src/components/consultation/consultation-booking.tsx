@@ -5,7 +5,8 @@ import { StepIndicator } from "./step-indicator"
 import { PersonalInfoStep } from "./_step-components/personal-info-step"
 import { BusinessInfoStep } from "./_step-components/business-info-step"
 import { ServiceNeedsStep } from "./_step-components/service-needs-step"
-import { ScheduleMeetingStep } from "./_step-components/schedule-meeting-step"
+// ScheduleMeetingStep is no longer used — step 4 removed in favor of submitting on step 3
+// import { ScheduleMeetingStep } from "./_step-components/schedule-meeting-step"
 import { ThankYouScreen } from "./thank-you-modal"
 import Image from "next/image"
 import { sendContactEmail, formatFormDataToMessage, sendPartialFormData, formatPartialFormDataToMessage } from "@/lib/api"
@@ -38,7 +39,7 @@ const steps = [
   { number: 1, label: "Personal Info" },
   { number: 2, label: "Business Info" },
   { number: 3, label: "Service Needs" },
-  { number: 4, label: "Schedule Meeting" },
+  // Step 4 (Schedule Meeting) removed — submission now happens after step 3
 ]
 
 export default function ConsultationBooking() {
@@ -96,8 +97,13 @@ export default function ConsultationBooking() {
   }
 
   const handleNext = () => {
-    if (currentStep < 4) {
+    // If there are further steps (less than the number of steps), advance.
+    // Otherwise (we're on the last step now), submit the form.
+    if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1)
+    } else {
+      // Last step reached — perform final submission
+      handleConfirmBooking()
     }
   }
 
@@ -110,12 +116,13 @@ export default function ConsultationBooking() {
   // Track page unload/visibility change to send partial submission
   useEffect(() => {
     const shouldSendPartial = () => {
-      // Send partial only once, only if main submissions not both successful
+      // Send partial only once, only if main submission not successful
       if (partialSent) return false
-      const bothSucceeded = contactEmailSent && bookingCreated
-      if (bothSucceeded) return false
-      // Only if user hasn't completed all steps
-      if (!(formData.fullName && formData.email && currentStep < 4)) return false
+      // Previously we waited for both contact email and booking creation;
+      // with the 3-step flow there's only the contact email submission.
+      if (contactEmailSent) return false
+      // Only if user hasn't completed all steps (now 3 steps total)
+      if (!(formData.fullName && formData.email && currentStep < steps.length)) return false
       return true
     }
 
@@ -144,7 +151,7 @@ export default function ConsultationBooking() {
   const handleConfirmBooking = async () => {
     // Prevent double submission
     if (isSubmitting) {
-      console.log('⚠️ Submission already in progress, skipping duplicate call')
+      // console.log('⚠️ Submission already in progress, skipping duplicate call')
       return
     }
 
@@ -152,7 +159,7 @@ export default function ConsultationBooking() {
       setIsSubmitting(true)
       setSubmitError(null)
       
-      console.log('🔄 Starting handleConfirmBooking - sending contact email')
+      // console.log('🔄 Starting handleConfirmBooking - sending contact email')
       
       // Format the form data into the message string as shown in the API example
       const message = formatFormDataToMessage(formData)
@@ -164,7 +171,7 @@ export default function ConsultationBooking() {
         message: message
       })
       
-      console.log('✅ Contact email sent successfully')
+      // console.log('✅ Contact email sent successfully')
       setContactEmailSent(true)
       
       // Show success toast
@@ -221,40 +228,32 @@ export default function ConsultationBooking() {
 
         {/* Step Content */}
         <div className="mt-4 sm:mt-8 lg:mt-12">
-          {currentStep === 1 && (
-            <PersonalInfoStep formData={formData} updateFormData={updateFormData} onNext={handleNext} />
+          {/* When showThankYou is true we hide the step content and only render the Thank You screen */}
+          {!showThankYou && (
+            <>
+              {currentStep === 1 && (
+                <PersonalInfoStep formData={formData} updateFormData={updateFormData} onNext={handleNext} />
+              )}
+              {currentStep === 2 && (
+                <BusinessInfoStep
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onNext={handleNext}
+                  onBack={handleBack}
+                />
+              )}
+              {currentStep === 3 && (
+                <ServiceNeedsStep
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onNext={handleNext}
+                  onBack={handleBack}
+                />
+              )}
+            </>
           )}
-          {currentStep === 2 && (
-            <BusinessInfoStep
-              formData={formData}
-              updateFormData={updateFormData}
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          )}
-          {currentStep === 3 && (
-            <ServiceNeedsStep
-              formData={formData}
-              updateFormData={updateFormData}
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          )}
-          {currentStep === 4 && (
-            showThankYou ? (
-              <ThankYouScreen />
-            ) : (
-              <ScheduleMeetingStep
-                formData={formData}
-                updateFormData={updateFormData}
-                onConfirm={handleConfirmBooking}
-                onBack={handleBack}
-                isSubmitting={isSubmitting}
-                submitError={submitError}
-                onBookingSuccess={() => setBookingCreated(true)}
-              />
-            )
-          )}
+
+          {showThankYou && <ThankYouScreen />}
         </div>
       </div>
     </div>
