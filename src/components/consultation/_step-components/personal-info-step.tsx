@@ -18,6 +18,8 @@ interface PersonalInfoStepProps {
 
 export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalInfoStepProps) {
   const [error, setError] = useState("")
+  const [nameError, setNameError] = useState("")
+  const [emailError, setEmailError] = useState("")
 
   const BD_COUNTRY_CODE = "880" // Bangladesh calling code without '+'
   const MAX_NATIONAL_DIGITS = 10
@@ -70,7 +72,22 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    // Reset field errors
+    setNameError("")
+    setEmailError("")
     const national = getNationalDigits(formData.phone)
+
+    // Validate name
+    if (!formData.fullName || formData.fullName.trim().length === 0) {
+      setNameError("Full name is required")
+    }
+
+    // Validate email (basic)
+    const emailValue = formData.email || ""
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailValue || !emailRegex.test(emailValue)) {
+      setEmailError("Please enter a valid email address")
+    }
 
     if (!national) {
       setError("Phone number is required")
@@ -78,6 +95,11 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
     }
     if (national.length !== MAX_NATIONAL_DIGITS) {
       setError(`Phone number must be exactly ${MAX_NATIONAL_DIGITS} digits`)
+      return
+    }
+
+    // If any field errors exist, don't proceed
+    if (nameError || emailError) {
       return
     }
 
@@ -104,6 +126,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
             required
             className="w-full sm:h-12 h-9"
           />
+          {nameError && <p className="text-red-500 text-sm">{nameError}</p>}
         </div>
 
         {/* Email Address */}
@@ -120,6 +143,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
             required
             className="w-full sm:h-12 h-9"
           />
+          {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
         </div>
 
         {/* Mobile/WhatsApp */}
@@ -162,10 +186,13 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="google">Google Search</SelectItem>
-              <SelectItem value="social">Social Media</SelectItem>
-              <SelectItem value="referral">Referral</SelectItem>
+              <SelectItem value="ai">AI (ChatGPT, Gemini) Search</SelectItem>
+              <SelectItem value="social">Facebook / Social Media</SelectItem>
+              <SelectItem value="youtube">YouTube / Video</SelectItem>
+              <SelectItem value="friend">Friend or Customer Referral</SelectItem>
+              <SelectItem value="news">News / Media</SelectItem>
               <SelectItem value="advertisement">Advertisement</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="other">Others</SelectItem>
             </SelectContent>
           </Select>
         </div>
