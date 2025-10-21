@@ -168,7 +168,8 @@ export default function ConsultationBooking() {
       await sendContactEmail({
         name: formData.fullName,
         email: formData.email,
-        message: message
+        message: message,
+        details: formData,
       })
       
       // console.log('✅ Contact email sent successfully')

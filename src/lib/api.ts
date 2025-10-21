@@ -2,6 +2,8 @@ export interface ContactEmailPayload {
   name: string
   email: string
   message: string
+  // optional structured form data to send alongside the message
+  details?: Partial<FormData>
 }
 
 export interface FormData {
@@ -32,6 +34,7 @@ export const sendContactEmail = async (payload: ContactEmailPayload): Promise<Re
     headers: {
       'Content-Type': 'application/json',
     },
+    // send structured payload: message + optional details
     body: JSON.stringify(payload),
   })
 
@@ -69,20 +72,54 @@ export const sendPartialFormData = async (payload: PartialFormPayload): Promise<
 
 export const formatFormDataToMessage = (formData: FormData): string => {
   const fullPhone = formData.phone || 'N/A'
-  
-  return `
-Phone: ${fullPhone}
-Company: ${formData.companyName}
-Website: ${formData.website || 'N/A'}
-Services: ${formData.goals.join(', ')}
-Google Ranking: ${formData.hasDoneSEO}
+  // Mapping keys (ids) to display labels
+  const REFERRAL_LABELS: Record<string, string> = {
+    google: 'Google Search',
+    ai: 'AI (ChatGPT, Gemini) Search',
+    social: 'Facebook / Social Media',
+    youtube: 'YouTube / Video',
+    friend: 'Friend or Customer Referral',
+    news: 'News / Media',
+    advertisement: 'Advertisement',
+    other: 'Others',
+  }
 
+  const GOAL_LABELS: Record<string, string> = {
+    'foot-traffic': 'Increase local foot traffic/calls',
+    'online-sales': 'Boost online sales/revenue',
+    'brand-awareness': 'Improve brand awareness',
+    'outrank-competitors': 'Outrank specific competitors',
+    'recover-rankings': 'Recover lost rankings',
+    'other-goal': 'Other',
+  }
+
+  const SERVICE_TEAM_LABELS: Record<string, string> = {
+    'local-seo': 'Local SEO',
+    'ecommerce-seo': 'E-Commerce SEO',
+    'brand-seo': 'Brand SEO & PR',
+    'digital-marketing': 'Digital Marketing Consultancy',
+    'rank-recovery': 'Rank Drop/Penalty Recovery',
+    'seo-workshop': 'SEO Workshop',
+    'other-service': 'Other',
+  }
+
+  const referralLabel = REFERRAL_LABELS[formData.referralSource] || formData.referralSource || 'N/A'
+  const goalsLabel = formData.goals && formData.goals.length > 0 ? formData.goals.map(g => GOAL_LABELS[g] || g).join(', ') : 'N/A'
+  const serviceTeamLabel = SERVICE_TEAM_LABELS[formData.serviceTeam] || formData.serviceTeam || 'N/A'
+  const googleRanking = formData.hasDoneSEO || 'N/A'
+
+  return `
+Full Name: ${formData.fullName || 'N/A'}
+Email Address: ${formData.email || 'N/A'}
+Mobile/WhatsApp: ${fullPhone}
+Where did you hear about us?: ${referralLabel}
+Company Name: ${formData.companyName || 'N/A'}
+Business Type/Industry: ${formData.businessType || 'N/A'}
+Website: ${formData.website || 'N/A'}
+Have you done SEO before?: ${googleRanking}
+What's your primary goal?: ${goalsLabel}
+Choose the Service You're Looking For: ${serviceTeamLabel}
 Calendly Scheduled: ${formData.selectedDate && formData.selectedTime ? 'Yes' : 'No'}
-Additional Notes: ${formData.referralSource}
-Selected Date: ${formData.selectedDate ? formData.selectedDate.toLocaleDateString() : 'N/A'}
-Selected Time: ${formData.selectedTime || 'N/A'}
-Service Team: ${formData.serviceTeam}
-Business Type: ${formData.businessType}
 `.trim()
 }
 
@@ -100,10 +137,21 @@ export const formatPartialFormDataToMessage = (formData: FormData, currentStep: 
   
   // Add available data based on current step
   if (currentStep >= 1) {
-    message += `Name: ${formData.fullName}\n`
-    message += `Email: ${formData.email}\n`
-    message += `Phone: ${formData.phone || 'N/A'}\n`
-    message += `Referral Source: ${formData.referralSource}\n`
+    const REFERRAL_LABELS: Record<string, string> = {
+      google: 'Google Search',
+      ai: 'AI (ChatGPT, Gemini) Search',
+      social: 'Facebook / Social Media',
+      youtube: 'YouTube / Video',
+      friend: 'Friend or Customer Referral',
+      news: 'News / Media',
+      advertisement: 'Advertisement',
+      other: 'Others',
+    }
+
+    message += `Full Name: ${formData.fullName}\n`
+    message += `Email Address: ${formData.email}\n`
+    message += `Mobile/WhatsApp: ${formData.phone || 'N/A'}\n`
+    message += `Where did you hear about us?: ${REFERRAL_LABELS[formData.referralSource] || formData.referralSource}\n`
   }
   
   if (currentStep >= 2) {
@@ -114,14 +162,29 @@ export const formatPartialFormDataToMessage = (formData: FormData, currentStep: 
   }
   
   if (currentStep >= 3) {
-    message += `Goals: ${formData.goals.join(', ')}\n`
-    message += `Service Team: ${formData.serviceTeam}\n`
+    const GOAL_LABELS: Record<string, string> = {
+      'foot-traffic': 'Increase local foot traffic/calls',
+      'online-sales': 'Boost online sales/revenue',
+      'brand-awareness': 'Improve brand awareness',
+      'outrank-competitors': 'Outrank specific competitors',
+      'recover-rankings': 'Recover lost rankings',
+      'other-goal': 'Other',
+    }
+    const SERVICE_TEAM_LABELS: Record<string, string> = {
+      'local-seo': 'Local SEO',
+      'ecommerce-seo': 'E-Commerce SEO',
+      'brand-seo': 'Brand SEO & PR',
+      'digital-marketing': 'Digital Marketing Consultancy',
+      'rank-recovery': 'Rank Drop/Penalty Recovery',
+      'seo-workshop': 'SEO Workshop',
+      'other-service': 'Other',
+    }
+
+    message += `What's your primary goal?: ${formData.goals.map(g => GOAL_LABELS[g] || g).join(', ')}\n`
+    message += `Choose the Service You're Looking For: ${SERVICE_TEAM_LABELS[formData.serviceTeam] || formData.serviceTeam}\n`
   }
   
-  if (currentStep >= 4) {
-    message += `Selected Date: ${formData.selectedDate ? formData.selectedDate.toLocaleDateString() : 'N/A'}\n`
-    message += `Selected Time: ${formData.selectedTime || 'N/A'}\n`
-  }
+  // Removed selected date/time from partial/submission messages per request
   
   return message.trim()
 }

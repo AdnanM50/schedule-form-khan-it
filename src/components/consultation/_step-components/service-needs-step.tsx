@@ -152,15 +152,14 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
             <ArrowLeft className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
             Back
           </Button>
-          <div className="flex justify-end">
-            <Button
-              type="submit"
-              className="px-4 sm:px-6 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white h-10 sm:h-12 text-sm sm:text-base font-medium"
-            >
-             Submit
-              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
-          </div>
+
+          <Button
+            type="submit"
+            className="w-full sm:w-auto px-4 sm:px-6 bg-[#0A1F44] hover:bg-[#0A1F44]/90 text-white h-10 sm:h-12 text-sm sm:text-base font-medium"
+          >
+            Submit
+            <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+          </Button>
         </div>
       </form>
     </div>
