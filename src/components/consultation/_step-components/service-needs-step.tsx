@@ -123,7 +123,6 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
                     ? 'border-orange-500 bg-orange-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
-                onClick={() => updateFormData({ serviceTeam: service.id })}
               >
                 <RadioGroupItem 
                   value={service.id} 

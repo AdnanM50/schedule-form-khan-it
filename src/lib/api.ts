@@ -253,86 +253,86 @@ export interface AvailableTimesParams {
 }
 
 // Create Cal.com booking
-export const createCalcomBooking = async (bookingData: {
-  name: string
-  email: string
-  timeZone: string
-  startTime: string
-  eventTypeId: number
-}) => {
-  try {
-    console.log('🔄 Creating Cal.com booking:', bookingData)
+// export const createCalcomBooking = async (bookingData: {
+//   name: string
+//   email: string
+//   timeZone: string
+//   startTime: string
+//   eventTypeId: number
+// }) => {
+//   try {
+//     console.log('🔄 Creating Cal.com booking:', bookingData)
     
-    const response = await fetch('https://contact-form.up.railway.app/api/createCalcomBooking', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(bookingData),
-    })
+//     const response = await fetch('https://contact-form.up.railway.app/api/createCalcomBooking', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Accept': 'application/json',
+//       },
+//       body: JSON.stringify(bookingData),
+//     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('❌ Cal.com Booking Error:', errorText)
-      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
-    }
+//     if (!response.ok) {
+//       const errorText = await response.text()
+//       console.error('❌ Cal.com Booking Error:', errorText)
+//       throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
+//     }
 
-    const data = await response.json()
-    console.log('✅ Cal.com Booking Success:', data)
-    return data
-  } catch (error) {
-    console.error('❌ Cal.com Booking Failed:', error)
-    throw error
-  }
-}
+//     const data = await response.json()
+//     console.log('✅ Cal.com Booking Success:', data)
+//     return data
+//   } catch (error) {
+//     console.error('❌ Cal.com Booking Failed:', error)
+//     throw error
+//   }
+// }
 
-export const getAvailableTimes = async (params: AvailableTimesParams): Promise<AvailableSlotsResponse> => {
-  try {
-    console.log('🌐 Making API call to getAvailableTimes with params:', params)
+// export const getAvailableTimes = async (params: AvailableTimesParams): Promise<AvailableSlotsResponse> => {
+//   try {
+//     console.log('🌐 Making API call to getAvailableTimes with params:', params)
     
-    const response = await fetch('https://contact-form.up.railway.app/api/getAvailableTimes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        eventTypeSlug: params.eventTypeSlug,
-        startDate: params.startDate,
-        endDate: params.endDate,
-        timezone: params.timezone
-      }),
-    })
+//     const response = await fetch('https://contact-form.up.railway.app/api/getAvailableTimes', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Accept': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         eventTypeSlug: params.eventTypeSlug,
+//         startDate: params.startDate,
+//         endDate: params.endDate,
+//         timezone: params.timezone
+//       }),
+//     })
 
-    console.log('📡 Response status:', response.status, response.statusText)
+//     console.log('📡 Response status:', response.status, response.statusText)
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('❌ API Error Response:', errorText)
-      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
-    }
+//     if (!response.ok) {
+//       const errorText = await response.text()
+//       console.error('❌ API Error Response:', errorText)
+//       throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
+//     }
 
-    // Check if response is JSON
-    const contentType = response.headers.get('content-type')
-    if (!contentType || !contentType.includes('application/json')) {
-      const textResponse = await response.text()
-      console.error('❌ Non-JSON response:', textResponse)
-      throw new Error('Server returned non-JSON response')
-    }
+//     // Check if response is JSON
+//     const contentType = response.headers.get('content-type')
+//     if (!contentType || !contentType.includes('application/json')) {
+//       const textResponse = await response.text()
+//       console.error('❌ Non-JSON response:', textResponse)
+//       throw new Error('Server returned non-JSON response')
+//     }
 
-    const data = await response.json()
-    console.log('✅ API Response received:', data)
+//     const data = await response.json()
+//     console.log('✅ API Response received:', data)
     
-    if (!data.slots || !data.slots.data) {
-      console.error('❌ Invalid response structure:', data)
-      throw new Error('Invalid response format: missing slots data')
-    }
+//     if (!data.slots || !data.slots.data) {
+//       console.error('❌ Invalid response structure:', data)
+//       throw new Error('Invalid response format: missing slots data')
+//     }
 
-    console.log('✅ Valid slots data:', data.slots.data)
-    return data
-  } catch (error) {
-    console.error('❌ API Call Failed:', error)
-    throw error
-  }
-}
+//     console.log('✅ Valid slots data:', data.slots.data)
+//     return data
+//   } catch (error) {
+//     console.error('❌ API Call Failed:', error)
+//     throw error
+//   }
+// }

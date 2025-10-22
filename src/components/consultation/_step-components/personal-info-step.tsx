@@ -24,65 +24,77 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
   const BD_COUNTRY_CODE = "880" // Bangladesh calling code without '+'
   const MAX_NATIONAL_DIGITS = 10
 
-  // Extract the "national" digits from any value (E.164 or raw)
   const getNationalDigits = (value?: string) => {
     if (!value) return ""
     const digits = value.replace(/\D/g, "")
-    let national = digits
-
-    // If starts with BD code, drop it
     if (digits.startsWith(BD_COUNTRY_CODE)) {
-      national = digits.slice(BD_COUNTRY_CODE.length)
+      let national = digits.slice(BD_COUNTRY_CODE.length)
+      if (national.startsWith("0")) national = national.slice(1)
+      return national
     }
-    // If national starts with 0 (local leading 0), drop it
-    if (national.startsWith("0")) national = national.slice(1)
-
-    return national
+    return digits
   }
 
-  const buildE164FromNational = (national: string) => {
+  const buildE164FromNational = (national: string, countryCode?: string) => {
     if (!national) return ""
-    // ensure max length
-    const trimmed = national.slice(0, MAX_NATIONAL_DIGITS)
-    return `+${BD_COUNTRY_CODE}${trimmed}`
+    if (countryCode === BD_COUNTRY_CODE || !countryCode) {
+      const trimmed = national.slice(0, MAX_NATIONAL_DIGITS)
+      return `+${BD_COUNTRY_CODE}${trimmed}`
+    }
+    return `+${countryCode}${national}`
   }
 
-  // Called when react-phone-number-input emits a new value
   const handlePhoneChange = (value: string | undefined) => {
-    const national = getNationalDigits(value)
-
-    // If the user attempted to enter more than allowed digits, show error
-    // and keep the stored value trimmed to the allowed length.
-    if (national.length > MAX_NATIONAL_DIGITS) {
-      const trimmed = national.slice(0, MAX_NATIONAL_DIGITS)
-      const e164Trimmed = buildE164FromNational(trimmed)
-      updateFormData({ phone: e164Trimmed })
-      setError("Enter valid 10 number")
+    if (!value) {
+      updateFormData({ phone: "" })
+      setError("")
       return
     }
 
-    // Normal path: update trimmed value and clear error
-    const e164 = buildE164FromNational(national)
-    updateFormData({ phone: e164 })
+    const digits = value.replace(/\D/g, "")
+
+    if (digits.startsWith(BD_COUNTRY_CODE)) {
+      let national = digits.slice(BD_COUNTRY_CODE.length)
+      if (national.startsWith("0")) national = national.slice(1)
+
+      if (national.length === 0) {
+        updateFormData({ phone: value })
+        setError("")
+        return
+      }
+
+      // ✅ Show error ONLY if user types more than 10 digits
+      if (national.length > MAX_NATIONAL_DIGITS) {
+        setError(`Phone number must be exactly ${MAX_NATIONAL_DIGITS} digits`)
+        const trimmed = national.slice(0, MAX_NATIONAL_DIGITS)
+        const e164Trimmed = buildE164FromNational(trimmed, BD_COUNTRY_CODE)
+        updateFormData({ phone: e164Trimmed })
+        return
+      }
+
+      // No error if digits ≤ 10
+      const e164 = buildE164FromNational(national, BD_COUNTRY_CODE)
+      updateFormData({ phone: e164 })
+      setError("")
+      return
+    }
+
+    // Non-BD numbers
+    updateFormData({ phone: value })
     setError("")
   }
 
-  // We enforce digit limits inside handlePhoneChange and keep the input controlled.
-  // Avoid forwarding handlers to the underlying input (prevents React console warnings).
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Reset field errors
     setNameError("")
     setEmailError("")
+
     const national = getNationalDigits(formData.phone)
 
-    // Validate name
     if (!formData.fullName || formData.fullName.trim().length === 0) {
       setNameError("Full name is required")
     }
 
-    // Validate email (basic)
     const emailValue = formData.email || ""
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailValue || !emailRegex.test(emailValue)) {
@@ -98,7 +110,6 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
       return
     }
 
-    // If any field errors exist, don't proceed
     if (nameError || emailError) {
       return
     }
@@ -153,7 +164,9 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
           </Label>
 
           <div
-            className={`rounded-md border ${isPhoneInvalid ? "border-red-500" : "border-input"} focus-within:border-primary`}
+            className={`rounded-md border ${
+              isPhoneInvalid ? "border-red-500" : "border-input"
+            } focus-within:border-primary`}
           >
             <PhoneInput
               value={formData.phone}
@@ -168,7 +181,9 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
           </div>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
-          <p className="text-xs text-muted-foreground mt-1">Enter exactly {MAX_NATIONAL_DIGITS} digits (without country code).</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Enter exactly {MAX_NATIONAL_DIGITS} digits (without country code).
+          </p>
         </div>
 
         {/* Where did you hear about us? */}
