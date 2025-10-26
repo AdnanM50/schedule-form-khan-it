@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React, { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,14 +17,36 @@ interface BusinessInfoStepProps {
 }
 
 export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: BusinessInfoStepProps) {
+  const [businessTypeError, setBusinessTypeError] = useState("")
+  const [hasDoneSEOError, setHasDoneSEOError] = useState("")
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setBusinessTypeError("")
+    setHasDoneSEOError("")
+
+    let hasError = false
+
+    if (!formData.businessType) {
+      setBusinessTypeError("Please select your business type/industry")
+      hasError = true
+    }
+
+    if (!formData.hasDoneSEO) {
+      setHasDoneSEOError("Please select an option")
+      hasError = true
+    }
+
+    if (hasError) {
+      return
+    }
+
     onNext()
   }
 
   return (
     <div className="max-w-[768px] mx-auto bg-white rounded-lg  border border-border p-6 sm:p-8">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
         {/* Company Name */}
         <div className="space-y-2">
           <Label htmlFor="companyName" className="text-sm font-medium">
@@ -36,7 +58,6 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
             placeholder="Enter your company name"
             value={formData.companyName}
             onChange={(e) => updateFormData({ companyName: e.target.value })}
-            required
             className="w-full sm:h-12 h-9"
           />
         </div>
@@ -44,12 +65,14 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
         {/* Business Type/Industry */}
         <div className="space-y-2 w-full">
           <Label htmlFor="businessType" className="text-sm font-medium">
-            Business Type/Industry
+            Business Type/Industry <span className="text-red-500">*</span>
           </Label>
           <Select
             value={formData.businessType}
-            onValueChange={(value) => updateFormData({ businessType: value })}
-            required
+            onValueChange={(value) => {
+              updateFormData({ businessType: value })
+              setBusinessTypeError("")
+            }}
           >
             <SelectTrigger id="businessType" className="w-full">
               <SelectValue placeholder="Select your industry" />
@@ -65,6 +88,7 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
+          {businessTypeError && <p className="text-red-500 text-sm">{businessTypeError}</p>}
         </div>
 
         {/* Website */}
@@ -100,9 +124,12 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
         {/* Have you done SEO before? */}
         <div className="space-y-2 w-full">
           <Label htmlFor="hasDoneSEO" className="text-sm font-medium">
-            Have you done SEO before?
+            Have you done SEO before? <span className="text-red-500">*</span>
           </Label>
-          <Select value={formData.hasDoneSEO} onValueChange={(value) => updateFormData({ hasDoneSEO: value })} required>
+          <Select value={formData.hasDoneSEO} onValueChange={(value) => {
+            updateFormData({ hasDoneSEO: value })
+            setHasDoneSEOError("")
+          }}>
             <SelectTrigger id="hasDoneSEO" className="w-full">
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
@@ -112,6 +139,7 @@ export function BusinessInfoStep({ formData, updateFormData, onNext, onBack }: B
               <SelectItem value="not-sure">Not Sure</SelectItem>
             </SelectContent>
           </Select>
+          {hasDoneSEOError && <p className="text-red-500 text-sm">{hasDoneSEOError}</p>}
         </div>
 
         {/* Action Buttons */}

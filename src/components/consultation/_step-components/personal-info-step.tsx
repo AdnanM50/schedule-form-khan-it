@@ -20,6 +20,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
   const [error, setError] = useState("")
   const [nameError, setNameError] = useState("")
   const [emailError, setEmailError] = useState("")
+  const [referralError, setReferralError] = useState("")
 
   const BD_COUNTRY_CODE = "880" // Bangladesh calling code without '+'
   const MAX_NATIONAL_DIGITS = 10
@@ -88,6 +89,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
     e.preventDefault()
     setNameError("")
     setEmailError("")
+    setReferralError("")
 
     const national = getNationalDigits(formData.phone)
 
@@ -101,6 +103,10 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
       setEmailError("Please enter a valid email address")
     }
 
+    if (!formData.referralSource) {
+      setReferralError("Please select how you heard about us")
+    }
+
     if (!national) {
       setError("Phone number is required")
       return
@@ -110,7 +116,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
       return
     }
 
-    if (nameError || emailError) {
+    if (nameError || emailError || referralError) {
       return
     }
 
@@ -122,11 +128,11 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
 
   return (
     <div className="max-w-[768px] mx-auto bg-white rounded-lg border border-border p-6 sm:p-8">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
         {/* Full Name */}
         <div className="space-y-2">
           <Label htmlFor="fullName" className="text-sm font-medium">
-            Full Name
+            Full Name <span className="text-red-500">*</span>
           </Label>
           <Input
             id="fullName"
@@ -134,7 +140,6 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
             placeholder="Enter your full name"
             value={formData.fullName}
             onChange={(e) => updateFormData({ fullName: e.target.value })}
-            required
             className="w-full sm:h-12 h-9"
           />
           {nameError && <p className="text-red-500 text-sm">{nameError}</p>}
@@ -143,7 +148,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
         {/* Email Address */}
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium">
-            Email Address
+            Email Address <span className="text-red-500">*</span>
           </Label>
           <Input
             id="email"
@@ -151,7 +156,6 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
             placeholder="Enter your email address"
             value={formData.email}
             onChange={(e) => updateFormData({ email: e.target.value })}
-            required
             className="w-full sm:h-12 h-9"
           />
           {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
@@ -189,12 +193,14 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
         {/* Where did you hear about us? */}
         <div className="space-y-2 w-full">
           <Label htmlFor="referralSource" className="text-sm font-medium">
-            Where did you hear about us?
+            Where did you hear about us? <span className="text-red-500">*</span>
           </Label>
           <Select
             value={formData.referralSource}
-            onValueChange={(value) => updateFormData({ referralSource: value })}
-            required
+            onValueChange={(value) => {
+              updateFormData({ referralSource: value })
+              setReferralError("")
+            }}
           >
             <SelectTrigger id="referralSource" className="w-full h-12">
               <SelectValue placeholder="Select an option" />
@@ -210,6 +216,7 @@ export function PersonalInfoStep({ formData, updateFormData, onNext }: PersonalI
               <SelectItem value="other">Others</SelectItem>
             </SelectContent>
           </Select>
+          {referralError && <p className="text-red-500 text-sm">{referralError}</p>}
         </div>
 
         {/* Continue Button */}

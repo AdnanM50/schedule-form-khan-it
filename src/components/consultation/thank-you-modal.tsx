@@ -28,12 +28,12 @@ export function ThankYouScreen() {
 
         {/* Buttons */}
         <div className="flex sm:flex-row flex-col px-4 md:px-0 justify-center gap-4 mb-4 mt-4 ">
-          <a href="https://www.mdfarukkhan.com/" target="_blank" rel="noopener noreferrer" aria-label="Go to home">
+          <a href="https://www.mdfarukkhan.com/" target="_self" rel="noopener">
             <Button className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md">
               Go to Home
             </Button>
           </a>
-          <a href="https://www.mdfarukkhan.com/services/" target="_blank" rel="noopener noreferrer" aria-label="Explore our services">
+          <a href="https://www.mdfarukkhan.com/services/" target="_self" rel="noopener">
             <Button className="px-6 py-2 bg-white border border-gray-900 hover:bg-gray-50 text-gray-900 rounded-md">
               Explore our Services
             </Button>

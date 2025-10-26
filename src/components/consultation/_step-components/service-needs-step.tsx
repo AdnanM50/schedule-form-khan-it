@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React, { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 // import { Checkbox } from "@/components/ui/checkbox"
@@ -67,29 +67,55 @@ const serviceTeams = [
 ]
 
 export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: ServiceNeedsStepProps) {
+  const [goalsError, setGoalsError] = useState("")
+  const [serviceTeamError, setServiceTeamError] = useState("")
+
   const handleGoalToggle = (goalId: string) => {
     const currentGoals = formData.goals || []
     const newGoals = currentGoals.includes(goalId)
       ? currentGoals.filter((id) => id !== goalId)
       : [...currentGoals, goalId]
     updateFormData({ goals: newGoals })
+    if (newGoals.length > 0) {
+      setGoalsError("")
+    }
+  }
+
+  const handleServiceTeamChange = (value: string) => {
+    updateFormData({ serviceTeam: value })
+    setServiceTeamError("")
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.goals.length === 0 || !formData.serviceTeam) {
-      alert("Please select at least one goal and a service team")
+    setGoalsError("")
+    setServiceTeamError("")
+
+    let hasError = false
+
+    if (!formData.goals || formData.goals.length === 0) {
+      setGoalsError("Please select at least one goal")
+      hasError = true
+    }
+
+    if (!formData.serviceTeam) {
+      setServiceTeamError("Please select a service team")
+      hasError = true
+    }
+
+    if (hasError) {
       return
     }
+
     onNext()
   }
 
   return (
     <div className="max-w-[768px] mx-auto bg-white rounded-lg  border border-gray-200 p-6 sm:p-8">
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8" noValidate>
         {/* Goals Section */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">What's your primary goal?</h3>
+          <h3 className="text-lg font-semibold text-gray-800">What's your primary goal? <span className="text-red-500">*</span></h3>
           <div className="space-y-3">
             {goals.map((goal) => (
               <div key={goal.id} className="flex items-center space-x-3">
@@ -105,14 +131,15 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
               </div>
             ))}
           </div>
+          {goalsError && <p className="text-red-500 text-sm">{goalsError}</p>}
         </div>
 
         {/* Service Team Section */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">Choose the Service You're Looking For</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Choose the Service You're Looking For <span className="text-red-500">*</span></h3>
           <RadioGroup
             value={formData.serviceTeam}
-            onValueChange={(value) => updateFormData({ serviceTeam: value })}
+            onValueChange={handleServiceTeamChange}
             className="space-y-3"
           >
             {serviceTeams.map((service) => (
@@ -138,6 +165,7 @@ export function ServiceNeedsStep({ formData, updateFormData, onNext, onBack }: S
               </div>
             ))}
           </RadioGroup>
+          {serviceTeamError && <p className="text-red-500 text-sm">{serviceTeamError}</p>}
         </div>
 
         {/* Action Buttons: Back + Submit */}
