@@ -3,10 +3,7 @@
 import React, { useState } from "react"
 
 import { Button } from "@/components/ui/button"
-// import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-
-
 import type { FormData } from "../consultation-booking"
 import { ArrowRight, ArrowLeft } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -58,6 +55,11 @@ const serviceTeams = [
     id: "seo-workshop",
     label: "SEO Workshop",
     description: "Training day for your company/institution",
+  },
+  {
+    id: "website-design",
+    label: "Website Design ",
+    description: "Modern, SEO-friendly website design services",
   },
   {
     id: "other-service",
