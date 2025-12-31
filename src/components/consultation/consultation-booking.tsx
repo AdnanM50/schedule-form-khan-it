@@ -113,15 +113,13 @@ export default function ConsultationBooking() {
     }
   }
 
-  // Track page unload/visibility change to send partial submission
   useEffect(() => {
     const shouldSendPartial = () => {
-      // Send partial only once, only if main submission not successful
+
       if (partialSent) return false
-      // Previously we waited for both contact email and booking creation;
-      // with the 3-step flow there's only the contact email submission.
+
       if (contactEmailSent) return false
-      // Only if user hasn't completed all steps (now 3 steps total)
+
       if (!(formData.fullName && formData.email && currentStep < steps.length)) return false
       return true
     }
@@ -149,40 +147,32 @@ export default function ConsultationBooking() {
   }, [currentStep, formData.fullName, formData.email, contactEmailSent, bookingCreated, partialSent])
 
   const handleConfirmBooking = async () => {
-    // Prevent double submission
+
     if (isSubmitting) {
-      // console.log('⚠️ Submission already in progress, skipping duplicate call')
       return
     }
 
     try {
       setIsSubmitting(true)
       setSubmitError(null)
-      
-      // console.log('🔄 Starting handleConfirmBooking - sending contact email')
-      
-      // Format the form data into the message string as shown in the API example
+
       const message = formatFormDataToMessage(formData)
-      
-      // Send the contact email
+
       await sendContactEmail({
         name: formData.fullName,
         email: formData.email,
         message: message,
         details: formData,
       })
-      
-      // console.log('✅ Contact email sent successfully')
+   
       setContactEmailSent(true)
       
-      // Show success toast
       toast({
         title: "Consultation Request Submitted!",
         description: "Thank you for your interest. We'll get back to you soon.",
         duration: 5000,
       })
       
-      // Show success screen
       setShowThankYou(true)
     } catch (error) {
       console.error('Failed to submit form:', error)

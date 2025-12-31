@@ -545,7 +545,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
               {/* PRIVACY */}
               <div className="space-y-2">
-                <label className="flex items-start text-sm my-auto gap-2 p-5 rounded-[12px] bg-[#F9FAFB] text-[#5B6475]">
+                <label className="flex cursor-pointer items-start text-sm my-auto gap-2 p-5 rounded-[12px] bg-[#F9FAFB] text-[#5B6475]">
                   <Checkbox
                     checked={formData.privacyAgreement}
                     onCheckedChange={(checked) =>
