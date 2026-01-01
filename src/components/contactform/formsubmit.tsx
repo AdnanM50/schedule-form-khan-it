@@ -27,7 +27,7 @@ export default function ContactForm() {
     phone: '',
     services: [] as string[],
     primaryGoal: '',
-    otherGoal: '', // 👈 Added
+    otherGoal: '', 
     websiteUrl: '',
     budgetRange: '',
     howHeard: '',
@@ -151,7 +151,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   setIsSubmitting(true)
   try {
-    // Map budget value to display label
+
     const budgetLabelMap: Record<string, string> = {
       'less-than-200': 'Less than $200 (20,000 BDT)',
       '300-500': '$300 - $500 (30k-50k BDT)',
@@ -160,7 +160,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       'not-sure': 'Not sure yet',
     }
 
-    // Map primary goal to display label
+  
     const goalLabelMap: Record<string, string> = {
       'rank-higher': 'Rank higher on Google',
       'local-customers': 'Get more local customers (Google Maps)',
@@ -193,7 +193,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         hasDoneSEO: 'yes',
         referralSource: formData.howHeard || 'news',
         serviceTeam: 'local-seo',
-        website: formData.websiteUrl, // 👈 Already here, now we'll display it
+        website: formData.websiteUrl, 
       },
       message: `Full Name: ${formData.fullName}\nEmail Address: ${formData.email}\nMobile/WhatsApp: ${formData.phone}\nWebsite: ${formData.websiteUrl || 'Not provided'}\nWhere did you hear about us?: ${formData.howHeard || 'Not specified'}\nPrimary Goal: ${displayGoal}\nBudget Range: ${displayBudget}\nServices Interested In: ${formData.services.join(', ')}`,
     }
@@ -259,7 +259,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           />
         </div>
 
-        <div className="flex items-center gap-2 inter-font mx-auto justify-center text-sm font-medium leading-[20px] text-[#061237] py-2 px-5 mt-14 mb-6 bg-[#EDF1FD] w-fit border border-[#BBCAFA] rounded-full">
+        <div className="flex items-center gap-2 inter-font mx-auto justify-center text-sm font-medium leading-[20px] text-[#061237] py-2 px-5 mt-7 md:mt-14 md:mb-6 mb-4 bg-[#EDF1FD] w-fit border border-[#BBCAFA] rounded-full">
           <Image
             src="/roket.png"
             alt="Logo"
@@ -313,7 +313,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
 
         <div className="max-w-[894px] mx-auto">
-          <div className="mt-6 mx-4 sm:mx-6 rounded-[14px] border border-[#E5EAF1]">
+          <div className="mt-6 mx-2 sm:mx-6 rounded-[14px] border border-[#E5EAF1]">
             <div className="bg-colourful rounded-t-[14px] py-4 sm:py-6 md:py-8">
               <h2 className="text-center inter-font sm:text-2xl text-lg md:text-[30px] font-bold text-white">
                 Tell Me About Your Business
@@ -325,7 +325,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             <form
               onSubmit={handleSubmit}
-              className="md:py-8 py-4 inter-font space-y-4 sm:px-5 px-3.5 md:px-[48px]"
+              className="md:py-8 py-4 inter-font space-y-4 sm:px-5 px-2 md:px-[48px]"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
@@ -465,7 +465,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       Build a SEO Friendly Website
                     </SelectItem>
                     <SelectItem value="technical-seo">Fix technical SEO issues</SelectItem>
-                    <SelectItem value="other">Other (give a writing box to specify)</SelectItem>
+                    <SelectItem value="other">Other </SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.primaryGoal && <p className="text-red-500 text-xs">{errors.primaryGoal}</p>}
@@ -566,7 +566,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-[44px] rounded-[10px] bg-[#061237] text-white text-sm flex items-center justify-center gap-2"
+                className="w-full cursor-pointer h-[44px] rounded-[10px] bg-[#061237] text-white text-sm flex items-center justify-center gap-2"
               >
                 {isSubmitting ? 'Submitting...' : 'Get My Free Consultation'}
                 <ArrowRight size={16} />
@@ -575,59 +575,73 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
         </div>
 
-        <div className="py-6 px-6 text-center">
+        <div className="py-6  text-center max-w-[807.27px] mx-auto">
   <p className="md:text-2xl text-lg font-semibold text-[#061237] mb-3">Trusted by Brands</p>
   
-  <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-    {[
-      {
-        logo: '/+BackgroundColor.png',
-        title: 'Organic Traffic',
-        bgColor: 'bg-[#F8FAFC]',
-        textColor: 'text-[#21409A]',
-        firstpart: '',
-      },
-      {
-        logo: '/+BackgroundColor (1).png',
-        title: ' Furniture Rankings',
-        bgColor: 'bg-[#F8FAFC]',
-        textColor: 'text-[#ED1C24]',
-         firstpart: '#1',
-      },
-      {
-        logo: '/+BackgroundColor (2).png',
-        title: 'YouTube SEO Success',
-        bgColor: 'bg-[#F8FAFC]',
-        textColor: 'text-[#046C37]',
-      },
-      {
-        logo: '/+BackgroundColor (3).png',
-        title: 'Complete Digital SEO',
-        bgColor: 'bg-[#F8FAFC]',
-        textColor: 'text-[#F5821F]',
-      },
-      {
-        logo: '/+BackgroundColor (4).png',
-        title: 'Brand Authority Building',
-        bgColor: 'bg-[#F8FAFC]',
-        textColor: 'text-[#088C46]',
-      },
-    ].map((item, index) => (
-       <div
-        key={index}
-        className="" 
-      >
-        <Image
-          src={item.logo}
-          alt="Brand Logo"
-          width={1000}
-          height={1000}
-          className="max-w-[145px] object-fill"
-        />
-       
-      </div>
-    ))}
+<div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 ">
+ 
+  <div className="flex flex-col h-fit max-w-[145px] items-start p-4 rounded-lg bg-[#F8FAFC]  text-center">
+    <Image
+      src="/x9OQ (3).png"
+      alt="Walton Logo"
+      width={1000}
+      height={1000}
+      className="w-[37.66px] h-[19px] object-fill mb-3"
+    />
+    <p className="text-[#21409A] flex items-center  font-semibold text-[10px]"><span className='flex items-center text-[#00A66F]'>104 % <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" fill="none">
+  <path d="M2.47266 3.98755L5.00182 1.45838L7.53099 3.98755" stroke="#00A66F" stroke-width="0.9996" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M5 8.54199V1.52949" stroke="#00A66F" stroke-width="0.9996" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></span> Organic Traffic</p>
   </div>
+
+  {/* Card 2: Furniture Rankings */}
+  <div className="flex flex-col items-start p-4 h-fit max-w-[145px] rounded-lg bg-[#F8FAFC]  text-center">
+    <Image
+      src="/x9OQ (2).png"
+      alt="HATIL Logo"
+      width={1000}
+      height={1000}
+      className="w-[44.15px] h-[13.03px] object-fill mb-4"
+    />
+    <p className="text-[#ED1C24] font-semibold text-[10px]">#1 Furniture Rankings</p>
+  </div>
+
+  {/* Card 3: YouTube SEO Success */}
+  <div className="flex flex-col items-start h-fit max-w-[145px] p-4 rounded-lg bg-[#F8FAFC]  ">
+    <Image
+      src="/x9OQ (1).png"
+      alt="Klant Bank Logo"
+      width={4000}
+      height={4000}
+      className="w-[52.64px] h-[21px] object-fill mb-3"
+    />
+    <p className="text-[#046C37] font-semibold text-[10px]">YouTube SEO Success</p>
+  </div>
+
+  {/* Card 4: Complete Digital SEO */}
+  <div className="flex flex-col items-start p-4 h-fit max-w-[145px] rounded-lg bg-[#F8FAFC]  text-center">
+    <Image
+      src="/x9OQ (5).png"
+      alt="FAD Logo"
+      width={4000}
+      height={4000}
+      className="w-[48.95px] h-[21px] object-fill mb-3"
+    />
+    <p className="text-[#F5821F] font-semibold text-[10px]">Complete Digital SEO</p>
+  </div>
+
+  {/* Card 5: Brand Authority Building */}
+  <div className="flex flex-col items-start max-w-[145px] p-4 rounded-lg bg-[#F8FAFC]  text-start">
+    <Image
+      src="/x9OQ (4).png"
+      alt="MIR Logo"
+      width={4000}
+      height={4000}
+      className="w-[29.44px] h-[21px] object-contain mb-3"
+    />
+    <p className="text-[#088C46] font-semibold text-[10px]">Brand Authority Building</p>
+  </div>
+</div>
 </div>
       </div>
     </section>
