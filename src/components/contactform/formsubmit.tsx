@@ -314,7 +314,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         <div className="max-w-[894px] mx-auto">
           <div className="mt-6 mx-2 sm:mx-6 rounded-[14px] border border-[#E5EAF1]">
-            <div className="bg-colourful rounded-t-[14px] py-4 sm:py-6 md:py-8">
+            <div className="bg-colourful rounded-t-[14px] px-1.5 sm:px-0 py-4 sm:py-6 md:py-8">
               <h2 className="text-center inter-font sm:text-2xl text-lg md:text-[30px] font-bold text-white">
                 Tell Me About Your Business
               </h2>
