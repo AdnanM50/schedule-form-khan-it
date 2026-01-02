@@ -582,7 +582,7 @@ const handleSubmit = async (e: React.FormEvent) => {
  
   <div className="flex flex-col h-fit max-w-[145px] items-start p-4 rounded-lg bg-[#F8FAFC]  text-center">
     <Image
-      src="/x9OQ (3).png"
+      src="/Walton_Group_Logo 1.png"
       alt="Walton Logo"
       width={1000}
       height={1000}
@@ -597,7 +597,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   {/* Card 2: Furniture Rankings */}
   <div className="flex flex-col items-start p-4 h-fit max-w-[145px] rounded-lg bg-[#F8FAFC]  text-center">
     <Image
-      src="/x9OQ (2).png"
+      src="/855854571c0c65588cdb4d6573073aacc3a12227.png"
       alt="HATIL Logo"
       width={1000}
       height={1000}
@@ -609,7 +609,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   {/* Card 3: YouTube SEO Success */}
   <div className="flex flex-col items-start h-fit max-w-[145px] p-4 rounded-lg bg-[#F8FAFC]  ">
     <Image
-      src="/x9OQ (1).png"
+      src="/x9OQKixv9r9WlsdxKXmo3uVWGoZn9GGjrJt0lhf6 1.png"
       alt="Klant Bank Logo"
       width={4000}
       height={4000}
@@ -621,7 +621,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   {/* Card 4: Complete Digital SEO */}
   <div className="flex flex-col items-start p-4 h-fit max-w-[145px] rounded-lg bg-[#F8FAFC]  text-center">
     <Image
-      src="/x9OQ (5).png"
+      src="/logo.64e0b262 1.png"
       alt="FAD Logo"
       width={4000}
       height={4000}
@@ -633,7 +633,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   {/* Card 5: Brand Authority Building */}
   <div className="flex flex-col items-start max-w-[145px] p-4 rounded-lg bg-[#F8FAFC]  text-start">
     <Image
-      src="/x9OQ (4).png"
+      src="/logo-mir 1.png"
       alt="MIR Logo"
       width={4000}
       height={4000}
