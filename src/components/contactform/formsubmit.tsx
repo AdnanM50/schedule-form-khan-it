@@ -182,19 +182,19 @@ const handleSubmit = async (e: React.FormEvent) => {
     const payload = {
       name: formData.fullName,
       email: formData.email,
-      details: {
-        fullName: formData.fullName,
-        email: formData.email,
-        countryCode: '+88',
-        phone: formData.phone,
-        businessType: 'local',
-        companyName: 'Watson LTD',
-        goals: formData.services,
-        hasDoneSEO: 'yes',
-        referralSource: formData.howHeard || 'news',
-        serviceTeam: 'local-seo',
-        website: formData.websiteUrl, 
-      },
+      // details: {
+      //   fullName: formData.fullName,
+      //   email: formData.email,
+      //   countryCode: '+88',
+      //   phone: formData.phone,
+      //   businessType: 'local',
+      //   companyName: 'Watson LTD',
+      //   goals: formData.services,
+      //   hasDoneSEO: 'yes',
+      //   referralSource: formData.howHeard || 'news',
+      //   serviceTeam: 'local-seo',
+      //   website: formData.websiteUrl, 
+      // },
       message: `Full Name: ${formData.fullName}\nEmail Address: ${formData.email}\nMobile/WhatsApp: ${formData.phone}\nWebsite: ${formData.websiteUrl || 'Not provided'}\nWhere did you hear about us?: ${formData.howHeard || 'Not specified'}\nPrimary Goal: ${displayGoal}\nBudget Range: ${displayBudget}\nServices Interested In: ${formData.services.join(', ')}`,
     }
 
@@ -307,7 +307,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </svg>
                 ))}
               </span>
-              Trusted by 100+ businesses
+              Rated 5.0 on Clutch | 10+ Years of SEO Excellence
             </p>
           </div>
         </div>
@@ -388,7 +388,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               {/* SERVICES */}
               <div className="space-y-2">
                 <Label htmlFor="services" className="text-sm font-medium">
-                  What service are you interested in?* <span className="text-red-500">*</span>
+                  What service are you interested in? <span className="text-red-500">*</span>
                 </Label>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -435,7 +435,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               {/* PRIMARY GOAL */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium">
-                  What is your primary goal?* <span className="text-red-500">*</span>
+                  What is your primary goal? <span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={formData.primaryGoal}
@@ -502,7 +502,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium">
-                  Monthly Budget Range* <span className="text-red-500">*</span>
+                  Monthly Budget Range <span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={formData.budgetRange}
@@ -536,9 +536,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <SelectValue placeholder="Select an option" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="google">Google</SelectItem>
-                    <SelectItem value="referral">Referral</SelectItem>
-                    <SelectItem value="social">Social Media</SelectItem>
+                
+                          <SelectItem value="google">Google Search</SelectItem>
+                                  <SelectItem value="ai-(chatgpt-gemini)">AI (ChatGPT, Gemini) Search</SelectItem>
+                                  <SelectItem value="social-media(facebook)">Facebook / Social Media</SelectItem>
+                                  <SelectItem value="youtube">YouTube / Video</SelectItem>
+                                  <SelectItem value="friend-customer-referral">Friend or Customer Referral</SelectItem>
+                                  <SelectItem value="news-media">News / Media</SelectItem>
+                                  <SelectItem value="advertisement">Advertisement</SelectItem>
+                                  <SelectItem value="other">Others</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
