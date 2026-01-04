@@ -195,7 +195,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       //   serviceTeam: 'local-seo',
       //   website: formData.websiteUrl, 
       // },
-      message: `Full Name: ${formData.fullName}\nEmail Address: ${formData.email}\nMobile/WhatsApp: ${formData.phone}\nWebsite: ${formData.websiteUrl || 'Not provided'}\nWhere did you hear about us?: ${formData.howHeard || 'Not specified'}\nPrimary Goal: ${displayGoal}\nBudget Range: ${displayBudget}\nServices Interested In: ${formData.services.join(', ')}`,
+      message: `Full Name: ${formData.fullName}\nEmail Address: ${formData.email}\nMobile/WhatsApp: ${formData.phone}\nWebsite: ${formData.websiteUrl || 'Not provided'}\nHow did you hear about us?: ${formData.howHeard || 'Not specified'}\nWhat is your Primary Goal: ${displayGoal}\nMonthly Budget Range: ${displayBudget}\nWhat Services are you Interested In: ${formData.services.join(', ')}`,
     }
 
     const response = await fetch('https://contact-form.up.railway.app/api/sendContactEmail', {
