@@ -153,7 +153,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   try {
 
     const budgetLabelMap: Record<string, string> = {
-      'less-than-200': 'Less than $200 (20,000 BDT)',
+      '200': ' $200 (20,000 BDT)',
       '300-500': '$300 - $500 (30k-50k BDT)',
       '500-1000': '$500 - $1,000 (60k-1L BDT)',
       '1000-2000': '$1,000 - $2,000 (1L-2L BDT)',
@@ -516,7 +516,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <SelectValue placeholder="Select a range" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="less-than-200">Less than $200 (20,000 BDT)</SelectItem>
+                    <SelectItem value="200"> $200 (20,000 BDT)</SelectItem>
                     <SelectItem value="300-500">$300 - $500 (30k-50k BDT)</SelectItem>
                     <SelectItem value="500-1000">$500 - $1,000 (60k-1L BDT)</SelectItem>
                     <SelectItem value="1000-2000">$1,000 - $2,000 (1L-2L BDT)</SelectItem>
