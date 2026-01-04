@@ -537,10 +537,10 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </SelectTrigger>
                   <SelectContent>
                 
-                          <SelectItem value="google">Google Search</SelectItem>
+                          <SelectItem value="google-search">Google Search</SelectItem>
                                   <SelectItem value="ai-(chatgpt-gemini)">AI (ChatGPT, Gemini) Search</SelectItem>
                                   <SelectItem value="social-media(facebook)">Facebook / Social Media</SelectItem>
-                                  <SelectItem value="youtube">YouTube / Video</SelectItem>
+                                  <SelectItem value="youtube-video">YouTube / Video</SelectItem>
                                   <SelectItem value="friend-customer-referral">Friend or Customer Referral</SelectItem>
                                   <SelectItem value="news-media">News / Media</SelectItem>
                                   <SelectItem value="advertisement">Advertisement</SelectItem>
