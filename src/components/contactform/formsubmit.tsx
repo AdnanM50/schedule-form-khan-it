@@ -283,7 +283,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             Just proven results.
           </p>
 
-          <div className="mt-4 flex items-center justify-center gap-2">
+          <div className="mt-4 flex md:flex-row flex-col items-center justify-center gap-2">
             <div className="flex -space-x-2">
               {images.map((i) => (
                 <img key={i} src={i} className="size-10 rounded-full border-2 border-white" />
