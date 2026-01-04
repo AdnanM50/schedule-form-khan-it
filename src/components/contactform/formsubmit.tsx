@@ -162,13 +162,13 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   
     const goalLabelMap: Record<string, string> = {
-      'rank-higher': 'Rank higher on Google',
-      'local-customers': 'Get more local customers (Google Maps)',
-      'organic-traffic': 'Increase organic traffic',
-      'brand-authority': 'Build brand authority',
-      'conversion-rates': 'Improve conversion rates',
-      'seo-friendly-website': 'Build a SEO Friendly Website',
-      'technical-seo': 'Fix technical SEO issues',
+      'rank-higher-on-google': 'Rank higher on Google',
+      'get-more-local-customers-google-maps': 'Get more local customers (Google Maps)',
+      'increase-organic-traffic': 'Increase organic traffic',
+      'build-brand-authority': 'Build brand authority',
+      'improve-conversion-rates': 'Improve conversion rates',
+      'build-seo-friendly-website': 'Build a SEO Friendly Website',
+      'fix-technical-seo-issues': 'Fix technical SEO issues',
       other: 'Other',
     }
 
@@ -464,7 +464,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <SelectItem value="build-seo-friendly-website">
                       Build a SEO Friendly Website
                     </SelectItem>
-                    <SelectItem value="fix-technical-seo">Fix technical SEO issues</SelectItem>
+                    <SelectItem value="fix-technical-seo-issues">Fix technical SEO issues</SelectItem>
                     <SelectItem value="other">Other </SelectItem>
                   </SelectContent>
                 </Select>
