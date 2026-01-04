@@ -454,17 +454,17 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <SelectValue placeholder="Select your goal" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="rank-higher">Rank higher on Google</SelectItem>
-                    <SelectItem value="local-customers">
+                    <SelectItem value="rank-higher-on-google">Rank higher on Google</SelectItem>
+                    <SelectItem value="get-more-local-customers-google-maps">
                       Get more local customers (Google Maps)
                     </SelectItem>
-                    <SelectItem value="organic-traffic">Increase organic traffic</SelectItem>
-                    <SelectItem value="brand-authority">Build brand authority</SelectItem>
-                    <SelectItem value="conversion-rates">Improve conversion rates</SelectItem>
-                    <SelectItem value="seo-friendly-website">
+                    <SelectItem value="increase-organic-traffic">Increase organic traffic</SelectItem>
+                    <SelectItem value="build-brand-authority">Build brand authority</SelectItem>
+                    <SelectItem value="improve-conversion-rates">Improve conversion rates</SelectItem>
+                    <SelectItem value="build-seo-friendly-website">
                       Build a SEO Friendly Website
                     </SelectItem>
-                    <SelectItem value="technical-seo">Fix technical SEO issues</SelectItem>
+                    <SelectItem value="fix-technical-seo">Fix technical SEO issues</SelectItem>
                     <SelectItem value="other">Other </SelectItem>
                   </SelectContent>
                 </Select>
