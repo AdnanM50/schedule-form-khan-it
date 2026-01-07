@@ -182,20 +182,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     const payload = {
       name: formData.fullName,
       email: formData.email,
-      // details: {
-      //   fullName: formData.fullName,
-      //   email: formData.email,
-      //   countryCode: '+88',
-      //   phone: formData.phone,
-      //   businessType: 'local',
-      //   companyName: 'Watson LTD',
-      //   goals: formData.services,
-      //   hasDoneSEO: 'yes',
-      //   referralSource: formData.howHeard || 'news',
-      //   serviceTeam: 'local-seo',
-      //   website: formData.websiteUrl, 
-      // },
-      message: `Full Name: ${formData.fullName}\nEmail Address: ${formData.email}\nMobile/WhatsApp: ${formData.phone}\nWebsite: ${formData.websiteUrl || 'Not provided'}\nHow did you hear about us?: ${formData.howHeard || 'Not specified'}\nWhat is your Primary Goal: ${displayGoal}\nMonthly Budget Range: ${displayBudget}\nWhat Services are you Interested In: ${formData.services.join(', ')}`,
+      message: `Full Name: ${formData.fullName}\nEmail Address: ${formData.email}\nMobile/WhatsApp: ${formData.phone}\nWhat Services are you Interested In: ${formData.services.join(', ')}\nWhat is your Primary Goal: ${displayGoal}\nWebsite: ${formData.websiteUrl || 'Not provided'}\nMonthly Budget Range: ${displayBudget}\nHow did you hear about us?: ${formData.howHeard || 'Not specified'}`,
     }
 
     const response = await fetch('https://contact-form.up.railway.app/api/sendContactEmail', {
